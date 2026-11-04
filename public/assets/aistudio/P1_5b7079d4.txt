@@ -1,0 +1,934 @@
+PROJECT: PERSONAL EXPENSE MANAGEMENT & AI FINANCIAL ASSISTANT
+
+ROLE AND RESPONSIBILITY
+
+Act as a senior Android application developer, UI/UX designer, backend engineer, database architect, and AI integration specialist.
+
+Your task is to design and develop a complete, professional, production-ready Native Android application for personal expense management, financial tracking, spending analysis, and financial discipline.
+
+This must be a REAL application with functional features, proper database connectivity, authentication, and a scalable backend architecture.
+
+Do not create just a frontend prototype, static dashboard, HTML website, or WebView application.
+
+Follow the requirements below carefully.
+
+---
+
+1. APPLICATION DEVELOPMENT TECHNOLOGY
+
+Build the application using the following architecture.
+
+Android Application
+
+- Native Android development.
+- Kotlin programming language.
+- Jetpack Compose for the user interface.
+- Material Design 3.
+- MVVM architecture.
+- Navigation Component.
+- Kotlin Coroutines and Flow.
+- Room database for local caching and offline support.
+- Retrofit or Ktor for backend API communication.
+- Android DataStore for application preferences.
+
+Backend
+
+- Node.js with Express.js.
+- REST API architecture.
+- Backend deployment on Railway.
+- MySQL database hosted on cPanel.
+- Secure communication using HTTPS.
+- Background processing designed for future integrations.
+
+Database
+
+- MySQL.
+- Separate user records.
+- User-specific transactions.
+- User-specific financial settings.
+- User-specific spending limits.
+- User-specific AI configurations where applicable.
+
+Important Architecture Rule
+
+Keep Android, backend, and database as separate modules.
+
+Do not hardcode server URLs, API keys, database credentials, or authentication secrets throughout the application.
+
+Use environment variables and configuration files.
+
+The architecture must allow additional functionality to be integrated without rebuilding the entire application.
+
+---
+
+2. APPLICATION DESIGN AND USER EXPERIENCE
+
+Create a premium, modern, professional financial application.
+
+Design inspiration:
+
+- Modern banking applications.
+- Premium personal finance dashboards.
+- Professional financial analytics applications.
+
+Design Requirements
+
+- Clean and minimal interface.
+- Professional typography.
+- Proper spacing and alignment.
+- Smooth animations.
+- Professional icons instead of emojis.
+- Rounded cards and modern components.
+- Attractive charts and graphs.
+- Light mode and dark mode.
+- Responsive layouts.
+- Proper loading indicators.
+- Empty states.
+- Error states.
+- Success notifications.
+
+Suggested Color System
+
+- Primary: Deep Navy Blue.
+- Secondary: Professional Blue.
+- Income: Green.
+- Expenses: Red.
+- Savings: Teal.
+- Background: Light Grey / Dark Navy.
+
+Avoid excessive gradients, unnecessary animations, and cluttered screens.
+
+The application must look like a professionally developed financial product.
+
+---
+
+3. AUTHENTICATION AND USER MANAGEMENT
+
+Implement Google Sign-In.
+
+First-time users must authenticate using their Google account.
+
+After successful authentication:
+
+1. Create a unique user account.
+2. Store the user's unique identifier.
+3. Create their personal financial profile.
+4. Initialize their dashboard.
+5. Check whether initial setup is completed.
+6. Redirect them to onboarding if necessary.
+
+Security Requirements
+
+- Implement proper Google authentication token verification on the backend.
+- Never trust a user ID supplied directly by the Android client.
+- Use secure session management.
+- Protect all user-specific API endpoints.
+- Ensure one user cannot access another user's transactions.
+- Validate every API request.
+- Store passwords and secrets securely.
+- Use HTTPS for all communication.
+
+Each user must have completely separate financial records.
+
+---
+
+4. FIRST-TIME ONBOARDING AND INTERACTIVE TUTORIAL
+
+Create a complete onboarding experience.
+
+When a user opens the application for the first time, guide them through the application.
+
+Onboarding Steps
+
+1. Welcome screen.
+2. Explain the purpose of the application.
+3. Explain the dashboard.
+4. Explain income and expense tracking.
+5. Explain transaction management.
+6. Explain spending limits.
+7. Explain financial analytics.
+8. Explain AI financial analysis.
+9. Ask the user to enter their initial balance.
+10. Ask the user to select their bank.
+
+Initially, support SBI (State Bank of India).
+
+Create interactive tutorials for important buttons and features.
+
+Include a dedicated Settings section where users can replay tutorials.
+
+Do not repeatedly display onboarding after it has been completed.
+
+---
+
+5. MAIN DASHBOARD
+
+The dashboard is the most important screen.
+
+It should provide an overview of the user's financial situation.
+
+Dashboard Components
+
+A. Current Balance Card
+
+- Total available balance.
+- Initial balance.
+- Current financial balance.
+- Total income.
+- Total expenses.
+
+B. Today's Financial Overview
+
+- Today's income.
+- Today's expenses.
+- Today's remaining spending allowance.
+- Daily spending limit.
+
+C. Monthly Overview
+
+- Monthly income.
+- Monthly expenses.
+- Monthly savings.
+- Monthly spending percentage.
+
+D. Spending Limit Card
+
+- Configured daily limit.
+- Amount spent today.
+- Remaining daily allowance.
+- Limit utilization percentage.
+
+E. Recent Transactions
+
+- Transaction description.
+- Amount.
+- Category.
+- Date and time.
+- Income or expense indicator.
+
+F. Financial Analytics
+
+- Daily expense graph.
+- Weekly expense graph.
+- Monthly expense graph.
+- Income versus expense comparison.
+
+Use professional financial cards and easy-to-understand visual indicators.
+
+The dashboard must update automatically whenever a transaction is added, edited, or deleted.
+
+---
+
+6. MANUAL TRANSACTION MANAGEMENT
+
+This is a mandatory functional feature for the first development version.
+
+Implement a complete manual transaction management system.
+
+Users must be able to add transactions through a dedicated Add Transaction button.
+
+Transaction Types
+
+- Income.
+- Expense.
+
+Transaction Form
+
+Include:
+
+- Transaction type.
+- Amount.
+- Description.
+- Category.
+- Transaction date.
+- Transaction time.
+- Optional notes.
+
+Example Transactions
+
+Income:
+
+- Scholarship: ₹500.
+- Money received from family: ₹1,000.
+
+Expenses:
+
+- Tea: ₹12.
+- Breakfast: ₹60.
+- Dinner: ₹60.
+- Lassi: ₹25.
+- Printing: ₹40.
+- Transportation: ₹30.
+
+These are examples for understanding the transaction system, NOT demo records to be inserted into the actual application.
+
+Transaction Management
+
+Users must be able to:
+
+- Add transactions.
+- Edit transactions.
+- Delete transactions.
+- View transaction details.
+- Search transactions.
+- Filter transactions.
+- Sort transactions.
+- View transaction history.
+
+Every transaction must be stored in MySQL and associated with the authenticated user.
+
+The application should also support offline transaction entry and synchronization when internet connectivity returns.
+
+Prevent duplicate transaction synchronization.
+
+---
+
+7. DAILY SPENDING LIMIT SYSTEM
+
+Implement a configurable daily spending limit.
+
+Example:
+
+A user sets their daily spending limit to ₹200.
+
+The application tracks all expenses for that day.
+
+Display:
+
+- Daily spending limit.
+- Amount already spent.
+- Remaining amount.
+- Percentage utilized.
+- Whether the limit has been exceeded.
+
+Visual Indicators
+
+Green:
+Spending is within the allowed limit.
+
+Red:
+Spending has exceeded the allowed limit.
+
+Orange:
+Spending is approaching the configured limit.
+
+Allow users to configure their own spending limits.
+
+Important
+
+For the initial version, implement spending monitoring and warnings only.
+
+Do not pretend that payment applications can already be blocked.
+
+Keep the future payment restriction module separate and ready for later implementation.
+
+---
+
+8. EXPENSE ANALYTICS AND GRAPHS
+
+Create a professional financial analytics section.
+
+Support the following time periods:
+
+- Daily.
+- Weekly.
+- Monthly.
+- Yearly.
+- Custom date range.
+
+Required Charts
+
+1. Daily spending bar chart.
+2. Weekly expense comparison.
+3. Monthly expense comparison.
+4. Yearly expense overview.
+5. Income versus expense chart.
+6. Category-wise expense pie chart.
+7. Daily spending limit comparison.
+
+Spending Categories
+
+- Food.
+- Transportation.
+- Education.
+- Printing.
+- Shopping.
+- Entertainment.
+- Mobile Recharge.
+- Personal.
+- Other.
+
+Allow users to create custom categories.
+
+Spending Analysis
+
+Highlight:
+
+- Highest spending day.
+- Lowest spending day.
+- Most expensive category.
+- Total monthly savings.
+- Average daily expenses.
+- Spending limit violations.
+- Repeated purchases.
+
+Example:
+
+If a user purchases Lassi several times during the day, identify the repeated purchases and display their combined cost.
+
+All analytics must be calculated from actual transaction records.
+
+Never use hardcoded chart values.
+
+---
+
+9. COMPLETE FINANCIAL HISTORY
+
+Create a dedicated transaction history screen.
+
+Users should be able to view their financial history using:
+
+- Today.
+- Yesterday.
+- This week.
+- Last week.
+- This month.
+- Last month.
+- This year.
+- Custom date range.
+
+Provide category filters and income/expense filters.
+
+Include pagination for large transaction histories.
+
+Display accurate historical balances.
+
+Editing or deleting a historical transaction must correctly recalculate affected financial summaries.
+
+---
+
+10. AI FINANCIAL ASSISTANT
+
+Create a separate AI-powered financial assistant module.
+
+The purpose is to help users understand their spending habits.
+
+AI Analysis Features
+
+The AI should analyze actual financial records and provide insights such as:
+
+- Where most of the money is spent.
+- Which category consumes the most money.
+- Which expenses are repeated frequently.
+- Why monthly expenses are increasing.
+- Which spending habits can be improved.
+- How much money can potentially be saved.
+- Which days have unusually high spending.
+- How spending patterns change over time.
+
+Example AI Response
+
+"You spent ₹450 on food this week. Your food expenses increased by 20% compared with the previous week. Reducing repeated discretionary purchases could help you save money."
+
+AI responses must be based on actual transaction data, not invented financial information.
+
+AI Provider Configuration
+
+Create an AI Configuration section in Settings.
+
+Support future integration with:
+
+- Google Gemini API.
+- OpenAI API.
+
+Allow users to configure API credentials securely.
+
+Important:
+
+- Never expose API keys inside the Android APK.
+- Store provider credentials on the backend using secure encryption or secret management.
+- Never return private API keys to the client.
+- Provide an option to select the active AI provider.
+- Handle API errors and usage limits.
+
+For the first version, implement a basic working AI analysis feature using the configured backend provider.
+
+---
+
+11. EMERGENCY SPENDING APPROVAL – FUTURE MODULE
+
+Design a separate emergency approval module.
+
+Example:
+
+A student has reached the daily spending limit but urgently needs to print an assignment.
+
+The user can submit a screenshot of the relevant WhatsApp conversation.
+
+The AI should:
+
+1. Analyze the uploaded screenshot.
+2. Extract relevant context.
+3. Understand the claimed emergency.
+4. Evaluate whether the expense appears necessary.
+5. Return an explanation and recommendation.
+6. Request explicit user confirmation before applying an exception.
+
+If approved, the backend can issue a temporary spending allowance.
+
+Important Safety Requirements
+
+- Never automatically approve payments based solely on a screenshot.
+- Allow the user to review and confirm the decision.
+- Keep an approval history.
+- Define a maximum emergency allowance.
+- Apply an expiry time to temporary approvals.
+
+For the initial version, create the UI and backend interface structure only.
+
+Actual AI screenshot verification and payment exceptions will be implemented later.
+
+---
+
+12. SETTINGS SECTION
+
+Create a dedicated Settings screen.
+
+Include:
+
+1. Personal profile.
+2. Google account information.
+3. Initial balance configuration.
+4. Bank selection.
+5. Daily spending limit.
+6. Expense categories.
+7. AI provider configuration.
+8. WhatsApp linking.
+9. Notification preferences.
+10. Theme settings.
+11. Tutorial and help center.
+12. Privacy and security.
+13. Logout.
+
+WhatsApp Linking
+
+Create a dedicated WhatsApp Linking screen.
+
+For now, implement:
+
+- WhatsApp linking interface.
+- Phone number input.
+- Connection status.
+- QR/code placeholder.
+- Disconnect option.
+
+Prepare the backend API structure for future WhatsApp integration.
+
+Do not simulate a successful WhatsApp connection.
+
+---
+
+13. FUTURE BANK TRANSACTION INTEGRATION
+
+Design the application architecture so real bank transaction tracking can be added later.
+
+Initially, support SBI as the selected bank.
+
+In future development, investigate supported and legally authorized transaction data sources.
+
+Potential integrations may include:
+
+- Bank-authorized notifications.
+- Supported SMS transaction detection with appropriate permissions.
+- Official banking integrations where available.
+- WhatsApp-based transaction processing where legally and technically supported.
+
+The system should eventually process:
+
+- Incoming transactions.
+- Outgoing transactions.
+- Transaction amounts.
+- Transaction dates.
+- Transaction descriptions.
+
+After detecting a transaction, the application should request its purpose from the user.
+
+Do not implement unauthorized bank scraping or request banking passwords, OTPs, PINs, or internet banking credentials.
+
+For now, create the bank selection screen and integration-ready interfaces.
+
+---
+
+14. FUTURE PAYMENT APPLICATION RESTRICTION
+
+Prepare a separate Android module for future payment application restriction functionality.
+
+The intended future workflow:
+
+1. Detect supported payment applications.
+2. Monitor daily spending limits.
+3. Identify when the configured limit is reached.
+4. Warn the user.
+5. Offer an optional app-blocking experience.
+6. Allow authorized emergency exceptions.
+
+Research Android platform restrictions before implementation.
+
+Do not assume an ordinary application can directly disable or control other applications.
+
+Any future restriction feature must use permitted Android APIs and require explicit user authorization.
+
+For the initial version, implement only spending-limit monitoring and warnings.
+
+---
+
+15. DATABASE ARCHITECTURE
+
+Create a properly structured MySQL database.
+
+Suggested tables:
+
+users
+
+- id
+- google_id
+- email
+- name
+- profile_image
+- created_at
+
+user_settings
+
+- id
+- user_id
+- currency
+- theme
+- onboarding_completed
+- daily_spending_limit
+
+accounts
+
+- id
+- user_id
+- bank_name
+- account_type
+- opening_balance
+- current_balance
+
+transactions
+
+- id
+- user_id
+- account_id
+- transaction_type
+- amount
+- description
+- category_id
+- transaction_date
+- transaction_time
+- created_at
+- updated_at
+
+categories
+
+- id
+- user_id
+- category_name
+- category_type
+
+emergency_requests
+
+- id
+- user_id
+- requested_amount
+- reason
+- status
+- created_at
+
+integrations
+
+- id
+- user_id
+- integration_type
+- connection_status
+- configuration_reference
+
+Use proper foreign keys, indexes, database constraints, and transactions.
+
+Store money using DECIMAL rather than floating-point database fields.
+
+Implement proper database migrations.
+
+Never store another user's private information in a publicly accessible location.
+
+---
+
+16. BACKEND API ARCHITECTURE
+
+Create organized REST API endpoints.
+
+Suggested endpoints:
+
+Authentication:
+
+- POST /api/auth/google
+- GET /api/auth/profile
+
+Dashboard:
+
+- GET /api/dashboard/summary
+- GET /api/dashboard/analytics
+
+Transactions:
+
+- GET /api/transactions
+- POST /api/transactions
+- PUT /api/transactions/:id
+- DELETE /api/transactions/:id
+
+Categories:
+
+- GET /api/categories
+- POST /api/categories
+- PUT /api/categories/:id
+- DELETE /api/categories/:id
+
+Spending Limits:
+
+- GET /api/spending-limit
+- PUT /api/spending-limit
+
+AI:
+
+- POST /api/ai/analyze
+- POST /api/ai/emergency-review
+
+Integrations:
+
+- GET /api/integrations
+- POST /api/integrations/whatsapp/connect
+- DELETE /api/integrations/whatsapp/disconnect
+
+Settings:
+
+- GET /api/settings
+- PUT /api/settings
+
+All endpoints must include appropriate authentication, authorization, input validation, and error handling.
+
+---
+
+17. OFFLINE SUPPORT AND DATA SYNCHRONIZATION
+
+The application should remain usable when internet connectivity is unavailable.
+
+Use Room as a local cache and temporary transaction store.
+
+When internet connectivity returns:
+
+1. Detect pending transactions.
+2. Synchronize them with the backend.
+3. Verify successful synchronization.
+4. Prevent duplicate entries.
+5. Update the dashboard.
+6. Handle synchronization failures safely.
+
+Use unique transaction identifiers and idempotency keys.
+
+The MySQL database remains the primary cloud storage.
+
+---
+
+18. PROJECT STRUCTURE AND CODE QUALITY
+
+Maintain a clean, modular project structure.
+
+Separate:
+
+- UI components.
+- Screens.
+- Navigation.
+- ViewModels.
+- Repositories.
+- Data models.
+- Local database.
+- Network services.
+- Authentication.
+- Financial calculations.
+- Analytics.
+- AI services.
+- Settings.
+- Future integrations.
+
+Follow SOLID principles and proper Kotlin coding conventions.
+
+Avoid unnecessary dependencies and duplicated code.
+
+Write maintainable, readable, production-quality code.
+
+Include comments where useful.
+
+---
+
+19. INITIAL DEVELOPMENT SCOPE
+
+The first release must focus on fully functional core features.
+
+MUST WORK IN VERSION 1
+
+1. Native Android application.
+2. Professional UI/UX.
+3. Google authentication.
+4. User registration.
+5. User-specific database.
+6. First-time onboarding.
+7. Initial balance setup.
+8. Dashboard.
+9. Manual income entry.
+10. Manual expense entry.
+11. Edit and delete transactions.
+12. Transaction history.
+13. Daily spending limit.
+14. Spending warnings.
+15. Daily, weekly, monthly, and yearly graphs.
+16. Category-wise analysis.
+17. Financial summaries.
+18. Basic AI financial analysis.
+19. Settings.
+20. WhatsApp linking interface.
+21. Offline transaction entry.
+22. Backend synchronization.
+
+FUTURE DEVELOPMENT
+
+Do not implement these as working features in Version 1:
+
+- Automatic SBI transaction detection.
+- Automatic transaction popups from real bank activity.
+- WhatsApp integration.
+- Actual payment application blocking.
+- AI emergency screenshot verification.
+- Automatic emergency payment authorization.
+
+However, prepare clean interfaces and modular architecture for these features.
+
+---
+
+20. IMPORTANT DEVELOPMENT INSTRUCTIONS
+
+Follow these rules throughout development:
+
+1. Do not generate a static UI and claim that the application is complete.
+2. Do not use fake transaction records.
+3. Do not use hardcoded financial summaries.
+4. Do not create non-functional buttons.
+5. Do not use WebView instead of native Android development.
+6. Do not expose secrets or API keys in the APK.
+7. Do not mix frontend, backend, and database responsibilities.
+8. Do not compromise user financial privacy.
+9. Do not silently delete user data.
+10. Do not implement future integrations using fake success responses.
+
+Every completed feature must be tested.
+
+If a feature requires external credentials, explain exactly what credentials are required and where to configure them.
+
+---
+
+21. REQUIRED DEVELOPMENT DELIVERABLES
+
+Provide the following:
+
+Android Project
+
+- Complete Android Studio project.
+- Kotlin source code.
+- Jetpack Compose UI.
+- Gradle configuration.
+- AndroidManifest.xml.
+- Required resources.
+- Debug APK.
+- Release APK build instructions.
+
+Backend Project
+
+- Complete Node.js source code.
+- REST API implementation.
+- Authentication middleware.
+- Database connection.
+- Environment configuration example.
+- Railway deployment instructions.
+
+cPanel Project
+
+- MySQL database schema.
+- SQL installation file.
+- Database configuration instructions.
+- Required cron job configuration, if applicable.
+- Backup and restoration instructions.
+
+Documentation
+
+- Complete installation guide.
+- Android build instructions.
+- Google authentication configuration.
+- Database setup.
+- Railway deployment.
+- cPanel connection.
+- API configuration.
+- Testing instructions.
+- Future integration guide.
+
+---
+
+22. DEVELOPMENT WORKFLOW
+
+Do not attempt to generate the entire application in one uncontrolled step.
+
+Follow these development phases:
+
+PHASE 1: Architecture and project setup.
+PHASE 2: Professional Android UI and navigation.
+PHASE 3: Google authentication and user accounts.
+PHASE 4: MySQL database and backend connectivity.
+PHASE 5: Manual transaction management.
+PHASE 6: Dashboard and financial calculations.
+PHASE 7: Spending limits and warnings.
+PHASE 8: Charts and financial analytics.
+PHASE 9: AI financial analysis.
+PHASE 10: Settings and integration-ready interfaces.
+PHASE 11: Offline synchronization.
+PHASE 12: Testing and APK generation.
+
+At the beginning, provide:
+
+- Complete architecture diagram.
+- Android project folder structure.
+- Backend folder structure.
+- Database schema.
+- Development plan.
+
+Then start implementation phase by phase.
+
+After each phase:
+
+1. Explain what was implemented.
+2. List the files created or modified.
+3. Explain how to configure the feature.
+4. Test the feature.
+5. Identify remaining issues.
+6. Proceed to the next phase.
+
+Do not move forward with broken dependencies or unfinished core functionality.
+
+---
+
+FINAL OBJECTIVE
+
+Build a professional native Android personal finance management application that allows users to understand exactly where their money goes, track every income and expense, monitor their remaining balance, control unnecessary spending, and improve their financial habits through intelligent analytics.
+
+The application must be scalable, secure, maintainable, and ready for future bank, WhatsApp, AI, and payment-control integrations.
+
+Prioritize real functionality, professional design, data accuracy, and long-term maintainability over unnecessary visual effects.
+
+Start by presenting the complete technical architecture and project structure before generating the application code.

@@ -1,0 +1,6 @@
+{
+  "name": "FinPulse",
+  "description": "Personal expense management and AI financial assistant with smart analytics, daily limits, and cloud backend",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
