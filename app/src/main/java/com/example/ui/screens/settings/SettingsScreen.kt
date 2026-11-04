@@ -735,6 +735,8 @@ fun SettingsScreen(
       title = { Text("Privacy & Zero-Trust Cloud Architecture") },
       text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text("• cPanel Central Database: MySQL hosted on https://radhewins.buzz.")
+          Text("• Permanent Cloud Storage: All accounts, transactions, and settings survive reinstalls.")
           Text("• One Device = One Account: Bound via Android Keystore EC Key & Hardware Fingerprint.")
           Text("• Monies stored using DECIMAL(14,2) for exact mathematical precision.")
           Text("• AI Keys: Encrypted at rest using AES-256-CBC with per-user salt.")

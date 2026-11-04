@@ -112,4 +112,8 @@ interface FinPulseApiService {
 
   @POST("api/restrictions/log-event")
   suspend fun logRestrictionEvent(@Body request: LogRestrictionEventRequest): Response<GenericApiResponse>
+
+  // 7. Full Cloud User Dataset Restore (Requirement 5)
+  @GET("api/user/sync-all")
+  suspend fun pullCloudData(): Response<com.example.data.model.CloudSyncAllResponse>
 }

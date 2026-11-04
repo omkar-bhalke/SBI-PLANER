@@ -56,12 +56,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
       }
     }
 
-    // Trigger initial sync if online
+    // Trigger initial sync and cloud data restore if online
     viewModelScope.launch {
       val syncedCount = repository.syncManager.syncPendingTransactions()
       if (syncedCount > 0) {
-        _syncMessage.value = "Synced $syncedCount pending records with cloud backend"
+        _syncMessage.value = "Synced $syncedCount pending records with cPanel cloud backend"
       }
+      try {
+        if (!userSettings.value.authToken.isNullOrBlank()) {
+          val restored = repository.restoreFromCloud()
+          if (restored > 0) {
+            _syncMessage.value = "Synchronized $restored records from cPanel database"
+          }
+        }
+      } catch (_: Exception) {}
     }
   }
 
@@ -166,6 +174,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
           NetworkClient.setAuthToken(body.token)
           NetworkClient.setRefreshToken(body.refreshToken)
           NetworkClient.setDeviceId(deviceId)
+
+          // Restore previously saved data from cPanel cloud database (Requirement 5)
+          try {
+            val restoredCount = repository.restoreFromCloud()
+            if (restoredCount > 0) {
+              _syncMessage.value = "Restored $restoredCount records from cPanel database."
+            }
+          } catch (_: Exception) {}
+
           onSuccess(body.isFirstTime)
         } else {
           val errJson = response.errorBody()?.string()

@@ -55,7 +55,7 @@ class PreferenceManager(private val context: Context) {
       themeMode = prefs[KEY_THEME_MODE] ?: "SYSTEM",
       aiProvider = prefs[KEY_AI_PROVIDER] ?: "GEMINI",
       isAiConfigured = prefs[KEY_IS_AI_CONFIGURED] ?: false,
-      backendUrl = prefs[KEY_BACKEND_URL] ?: "https://finpulse-api.railway.app",
+      backendUrl = prefs[KEY_BACKEND_URL] ?: "https://radhewins.buzz",
       authToken = prefs[KEY_AUTH_TOKEN],
       refreshToken = prefs[KEY_REFRESH_TOKEN],
       deviceId = prefs[KEY_DEVICE_ID] ?: "",
@@ -91,6 +91,26 @@ class PreferenceManager(private val context: Context) {
       prefs[KEY_SELECTED_BANK] = bankName
       prefs[KEY_DAILY_LIMIT] = dailyLimit
       prefs[KEY_ONBOARDING_COMPLETED] = true
+    }
+  }
+
+  suspend fun restoreCloudFinancialSetup(
+    dailyLimit: Double,
+    initialBalance: Double,
+    bankName: String,
+    onboardingDone: Boolean
+  ) {
+    context.dataStore.edit { prefs ->
+      prefs[KEY_DAILY_LIMIT] = dailyLimit
+      prefs[KEY_INITIAL_BALANCE] = initialBalance
+      prefs[KEY_SELECTED_BANK] = bankName
+      prefs[KEY_ONBOARDING_COMPLETED] = onboardingDone
+    }
+  }
+
+  suspend fun updateBackendUrl(url: String) {
+    context.dataStore.edit { prefs ->
+      prefs[KEY_BACKEND_URL] = url
     }
   }
 

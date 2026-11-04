@@ -291,3 +291,54 @@ data class GenericApiResponse(
   val message: String? = null,
   val code: String? = null
 )
+
+// ==========================================
+// CLOUD RESTORE & SYNC ALL MODELS (REQUIREMENT 5)
+// ==========================================
+
+@JsonClass(generateAdapter = true)
+data class CloudSyncAllResponse(
+  val success: Boolean,
+  val message: String? = null,
+  val transactions: List<TransactionDto>? = null,
+  val categories: List<CategoryDto>? = null,
+  val settings: CloudSettingsDto? = null,
+  val account: CloudAccountDto? = null,
+  val whatsApp: CloudWhatsAppDto? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class CategoryDto(
+  val id: String,
+  val name: String,
+  val type: String,
+  val iconName: String? = "category",
+  val colorHex: String? = "#1E3E62",
+  val isDefault: Boolean = false
+)
+
+@JsonClass(generateAdapter = true)
+data class CloudSettingsDto(
+  val dailySpendingLimit: Double? = 500.0,
+  val selectedBank: String? = "State Bank of India (SBI)",
+  val currency: String? = "INR",
+  val currencySymbol: String? = "₹",
+  val themeMode: String? = "SYSTEM",
+  val aiProvider: String? = "GEMINI",
+  val onboardingCompleted: Boolean? = false
+)
+
+@JsonClass(generateAdapter = true)
+data class CloudAccountDto(
+  val initialBalance: Double = 0.0,
+  val currentBalance: Double = 0.0,
+  val bankName: String = "State Bank of India (SBI)"
+)
+
+@JsonClass(generateAdapter = true)
+data class CloudWhatsAppDto(
+  val connected: Boolean = false,
+  val phoneNumber: String? = null,
+  val status: String? = "NOT_CONNECTED"
+)
+

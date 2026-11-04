@@ -13,7 +13,8 @@ object NetworkClient {
   private var cachedToken: String? = null
   private var cachedRefreshToken: String? = null
   private var cachedDeviceId: String? = null
-  private var currentBaseUrl: String = "https://finpulse-api.railway.app/"
+  private var currentBaseUrl: String = "https://radhewins.buzz/"
+  private var _apiService: FinPulseApiService? = null
 
   fun setAuthToken(token: String?) {
     cachedToken = token
@@ -28,7 +29,11 @@ object NetworkClient {
   }
 
   fun setBaseUrl(url: String) {
-    currentBaseUrl = if (url.endsWith("/")) url else "$url/"
+    val formatted = if (url.endsWith("/")) url else "$url/"
+    if (formatted != currentBaseUrl) {
+      currentBaseUrl = formatted
+      _apiService = null
+    }
   }
 
   private val authInterceptor = Interceptor { chain ->
@@ -62,12 +67,16 @@ object NetworkClient {
     .addLast(KotlinJsonAdapterFactory())
     .build()
 
-  val apiService: FinPulseApiService by lazy {
-    Retrofit.Builder()
-      .baseUrl(currentBaseUrl)
-      .client(okHttpClient)
-      .addConverterFactory(MoshiConverterFactory.create(moshi))
-      .build()
-      .create(FinPulseApiService::class.java)
-  }
+  val apiService: FinPulseApiService
+    get() {
+      if (_apiService == null) {
+        _apiService = Retrofit.Builder()
+          .baseUrl(currentBaseUrl)
+          .client(okHttpClient)
+          .addConverterFactory(MoshiConverterFactory.create(moshi))
+          .build()
+          .create(FinPulseApiService::class.java)
+      }
+      return _apiService!!
+    }
 }

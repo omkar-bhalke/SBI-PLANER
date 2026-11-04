@@ -28,6 +28,10 @@ class FinancialRepository(context: Context) {
   val allTransactions: Flow<List<TransactionEntity>> = transactionDao.getAllTransactions()
   val allCategories: Flow<List<CategoryEntity>> = categoryDao.getAllCategories()
 
+  suspend fun restoreFromCloud(): Int {
+    return syncManager.restoreAllDataFromCloud(categoryDao, preferenceManager)
+  }
+
   fun getTodayDateString(): String {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     return sdf.format(Date())
