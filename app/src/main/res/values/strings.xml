@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FinPulse</string>
+    <string name="accessibility_service_description">FinPulse Spending Guardian monitors user-selected payment applications to prevent inadvertent overspending when your configured daily spending limit has been reached.</string>
 </resources>

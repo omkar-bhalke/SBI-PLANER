@@ -38,22 +38,21 @@ import com.example.data.model.TransactionEntity
 import com.example.ui.screens.ai.AiAssistantScreen
 import com.example.ui.screens.analytics.AnalyticsScreen
 import com.example.ui.screens.auth.LoginScreen
+import com.example.ui.screens.auth.RegisterScreen
 import com.example.ui.screens.dashboard.DashboardScreen
 import com.example.ui.screens.emergency.EmergencyApprovalScreen
 import com.example.ui.screens.onboarding.OnboardingScreen
+import com.example.ui.screens.settings.AppRestrictionSettingsScreen
 import com.example.ui.screens.settings.SettingsScreen
 import com.example.ui.screens.settings.WhatsAppLinkingScreen
 import com.example.ui.screens.transactions.AddEditTransactionScreen
 import com.example.ui.screens.transactions.TransactionListScreen
-import com.example.ui.theme.NavySurface
-import com.example.ui.theme.PrimaryBlue
 import com.example.viewmodel.AiAssistantViewModel
 import com.example.viewmodel.AnalyticsViewModel
 import com.example.viewmodel.DashboardViewModel
 import com.example.viewmodel.MainViewModel
 import com.example.viewmodel.SettingsViewModel
 import com.example.viewmodel.TransactionViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun FinPulseNavHost(
@@ -63,8 +62,8 @@ fun FinPulseNavHost(
   val navController = rememberNavController()
   val userSettings by mainViewModel.userSettings.collectAsState()
   val syncMessage by mainViewModel.syncMessage.collectAsState()
+  val authError by mainViewModel.authError.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
-  val coroutineScope = rememberCoroutineScope()
 
   val dashboardViewModel: DashboardViewModel = viewModel()
   val transactionViewModel: TransactionViewModel = viewModel()
@@ -79,6 +78,14 @@ fun FinPulseNavHost(
     syncMessage?.let { msg ->
       snackbarHostState.showSnackbar(msg)
       mainViewModel.clearSyncMessage()
+    }
+  }
+
+  // Auth error notification
+  LaunchedEffect(authError) {
+    authError?.let { err ->
+      snackbarHostState.showSnackbar(err)
+      mainViewModel.clearAuthError()
     }
   }
 
@@ -153,19 +160,43 @@ fun FinPulseNavHost(
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() }
       ) {
-        // 1. Login
+        // 1. Login (Email + Password + Device Binding)
         composable(Screen.Login.route) {
           LoginScreen(
-            onLoginSuccess = { id, email, name, photoUrl, token ->
-              mainViewModel.authenticateUser(id, email, name, photoUrl, token)
-              navController.navigate(Screen.Onboarding.route) {
-                popUpTo(Screen.Login.route) { inclusive = true }
+            viewModel = mainViewModel,
+            onLoginSuccess = { isFirstTime ->
+              if (isFirstTime || !userSettings.onboardingCompleted) {
+                navController.navigate(Screen.Onboarding.route) {
+                  popUpTo(Screen.Login.route) { inclusive = true }
+                }
+              } else {
+                navController.navigate(Screen.Dashboard.route) {
+                  popUpTo(Screen.Login.route) { inclusive = true }
+                }
               }
+            },
+            onNavigateToRegister = {
+              navController.navigate(Screen.Register.route)
             }
           )
         }
 
-        // 2. Onboarding
+        // 2. Register (One Device = One Account)
+        composable(Screen.Register.route) {
+          RegisterScreen(
+            viewModel = mainViewModel,
+            onRegisterSuccess = { isFirstTime ->
+              navController.navigate(Screen.Onboarding.route) {
+                popUpTo(Screen.Register.route) { inclusive = true }
+              }
+            },
+            onNavigateToLogin = {
+              navController.popBackStack()
+            }
+          )
+        }
+
+        // 3. Onboarding
         composable(Screen.Onboarding.route) {
           OnboardingScreen(
             onComplete = { balance, bank, limit ->
@@ -177,7 +208,7 @@ fun FinPulseNavHost(
           )
         }
 
-        // 3. Main Dashboard
+        // 4. Main Dashboard
         composable(Screen.Dashboard.route) {
           DashboardScreen(
             viewModel = dashboardViewModel,
@@ -201,7 +232,7 @@ fun FinPulseNavHost(
           )
         }
 
-        // 4. Transactions List
+        // 5. Transactions List
         composable(Screen.Transactions.route) {
           TransactionListScreen(
             viewModel = transactionViewModel,
@@ -216,12 +247,12 @@ fun FinPulseNavHost(
           )
         }
 
-        // 5. Analytics
+        // 6. Analytics
         composable(Screen.Analytics.route) {
           AnalyticsScreen(viewModel = analyticsViewModel)
         }
 
-        // 6. AI Assistant
+        // 7. AI Assistant
         composable(Screen.AiAssistant.route) {
           AiAssistantScreen(
             viewModel = aiAssistantViewModel,
@@ -231,12 +262,15 @@ fun FinPulseNavHost(
           )
         }
 
-        // 7. Settings
+        // 8. Settings
         composable(Screen.Settings.route) {
           SettingsScreen(
             viewModel = settingsViewModel,
             onNavigateToWhatsApp = {
               navController.navigate(Screen.WhatsAppLinking.route)
+            },
+            onNavigateToAppRestrictions = {
+              navController.navigate(Screen.AppRestrictions.route)
             },
             onReplayTutorial = {
               navController.navigate(Screen.Onboarding.route)
@@ -250,7 +284,15 @@ fun FinPulseNavHost(
           )
         }
 
-        // 8. Add Transaction
+        // 9. App Restrictions & Accessibility Service (Task 5)
+        composable(Screen.AppRestrictions.route) {
+          BackHandler { navController.popBackStack() }
+          AppRestrictionSettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
+          )
+        }
+
+        // 10. Add Transaction
         composable(Screen.AddTransaction.route) {
           BackHandler { navController.popBackStack() }
           AddEditTransactionScreen(
@@ -260,7 +302,7 @@ fun FinPulseNavHost(
           )
         }
 
-        // 9. Edit Transaction
+        // 11. Edit Transaction
         composable(Screen.EditTransaction.route) {
           BackHandler { navController.popBackStack() }
           AddEditTransactionScreen(
@@ -270,7 +312,7 @@ fun FinPulseNavHost(
           )
         }
 
-        // 10. WhatsApp Linking
+        // 12. WhatsApp Linking (Meta Cloud API)
         composable(Screen.WhatsAppLinking.route) {
           BackHandler { navController.popBackStack() }
           WhatsAppLinkingScreen(
@@ -279,7 +321,7 @@ fun FinPulseNavHost(
           )
         }
 
-        // 11. Emergency Approval
+        // 13. Emergency Approval
         composable(Screen.EmergencyApproval.route) {
           BackHandler { navController.popBackStack() }
           EmergencyApprovalScreen(

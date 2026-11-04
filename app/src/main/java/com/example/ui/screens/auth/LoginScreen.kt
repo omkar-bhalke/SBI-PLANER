@@ -1,8 +1,8 @@
 package com.example.ui.screens.auth
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,28 +14,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PhonelinkLock
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,233 +52,290 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
 import com.example.ui.theme.AccentGold
+import com.example.ui.theme.ExpenseRed
 import com.example.ui.theme.NavyDark
 import com.example.ui.theme.NavySurface
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
-import kotlinx.coroutines.launch
+import com.example.ui.theme.PrimaryBlue
+import com.example.viewmodel.MainViewModel
 
 @Composable
 fun LoginScreen(
-  onLoginSuccess: (userId: String, email: String, name: String, photoUrl: String?, token: String?) -> Unit,
+  viewModel: MainViewModel,
+  onLoginSuccess: (isFirstTime: Boolean) -> Unit,
+  onNavigateToRegister: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val coroutineScope = rememberCoroutineScope()
+  var email by remember { mutableStateOf("") }
+  var password by remember { mutableStateOf("") }
+  var rememberMe by remember { mutableStateOf(true) }
+  var passwordVisible by remember { mutableStateOf(false) }
+
   var isLoading by remember { mutableStateOf(false) }
+  var errorMessage by remember { mutableStateOf<String?>(null) }
+  var showForgotPasswordDialog by remember { mutableStateOf(false) }
 
   Box(
     modifier = modifier
       .fillMaxSize()
       .background(NavyDark)
-      .padding(24.dp)
+      .padding(horizontal = 24.dp)
   ) {
     Column(
       modifier = Modifier
         .fillMaxSize()
-        .padding(vertical = 24.dp),
+        .verticalScroll(rememberScrollState()),
       horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.SpaceBetween
+      verticalArrangement = Arrangement.Center
     ) {
-      // Top Branding
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(top = 24.dp)
-      ) {
-        Box(
-          modifier = Modifier
-            .size(80.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(NavySurface),
-          contentAlignment = Alignment.Center
-        ) {
-          Icon(
-            imageVector = Icons.Default.TrendingUp,
-            contentDescription = "FinPulse Logo",
-            tint = AccentGold,
-            modifier = Modifier.size(44.dp)
-          )
-        }
+      Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-          text = "FinPulse",
-          fontSize = 30.sp,
-          fontWeight = FontWeight.Bold,
-          color = Color.White
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-          text = "AI Financial Discipline & Expense Management",
-          fontSize = 13.sp,
-          color = Color(0xFF94A3B8),
-          textAlign = TextAlign.Center
-        )
-      }
-
-      // Value Proposition Cards
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-      ) {
-        FeatureHighlightRow(
-          icon = Icons.Default.AccountBalance,
-          title = "Complete Ledger & Daily Limits",
-          subtitle = "Track every rupee and monitor your daily allowance in real time"
-        )
-        FeatureHighlightRow(
-          icon = Icons.Default.AutoAwesome,
-          title = "AI Financial Intelligence",
-          subtitle = "Detect repeated micro-purchases and uncover hidden savings"
-        )
-        FeatureHighlightRow(
-          icon = Icons.Default.Security,
-          title = "Bank-Grade Separation & Security",
-          subtitle = "Encrypted cloud persistence with multi-device synchronization"
-        )
-      }
-
-      // Authentication Buttons
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-      ) {
-        if (isLoading) {
-          CircularProgressIndicator(color = AccentGold, modifier = Modifier.size(36.dp))
-        } else {
-          // Google Sign-In via Credential Manager
-          Button(
-            onClick = {
-              isLoading = true
-              coroutineScope.launch {
-                try {
-                  val credentialManager = CredentialManager.create(context)
-                  val googleOption = GetSignInWithGoogleOption.Builder("dummy_client_id_placeholder.apps.googleusercontent.com")
-                    .build()
-                  val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleOption)
-                    .build()
-
-                  val result = credentialManager.getCredential(context as Activity, request)
-                  // If succeeded with token:
-                  onLoginSuccess("usr_${System.currentTimeMillis()}", "user@finpulse.app", "FinPulse User", null, "jwt_token_sample")
-                } catch (e: Exception) {
-                  // Fallback for emulator / environment without Play Services Google Account signed in
-                  onLoginSuccess(
-                    "user_google_102938",
-                    "student.finpulse@gmail.com",
-                    "Omkar Bhalke",
-                    null,
-                    "jwt_session_authenticated"
-                  )
-                  Toast.makeText(context, "Signed in successfully with Google Account", Toast.LENGTH_SHORT).show()
-                } finally {
-                  isLoading = false
-                }
-              }
-            },
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(52.dp)
-              .testTag("google_signin_button"),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .size(24.dp)
-                  .clip(CircleShape)
-                  .background(Color(0xFFE2E8F0)),
-                contentAlignment = Alignment.Center
-              ) {
-                Text("G", fontWeight = FontWeight.Bold, color = Color(0xFF1E3E62), fontSize = 14.sp)
-              }
-              Spacer(modifier = Modifier.width(12.dp))
-              Text(
-                text = "Continue with Google",
-                color = Color(0xFF0F172A),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-              imageVector = Icons.Default.Lock,
-              contentDescription = "Encrypted",
-              tint = Color(0xFF64748B),
-              modifier = Modifier.size(12.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-              text = "100% Private & User-Specific Data Isolation",
-              fontSize = 11.sp,
-              color = Color(0xFF64748B)
-            )
-          }
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun FeatureHighlightRow(
-  icon: androidx.compose.ui.graphics.vector.ImageVector,
-  title: String,
-  subtitle: String
-) {
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(16.dp),
-    colors = CardDefaults.cardColors(containerColor = Color(0xFF132238))
-  ) {
-    Row(
-      modifier = Modifier.padding(14.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
+      // Top Logo & Branding
       Box(
         modifier = Modifier
-          .size(40.dp)
-          .clip(CircleShape)
+          .size(76.dp)
+          .clip(RoundedCornerShape(22.dp))
           .background(NavySurface),
         contentAlignment = Alignment.Center
       ) {
         Icon(
-          imageVector = icon,
-          contentDescription = title,
+          imageVector = Icons.Default.TrendingUp,
+          contentDescription = "FinPulse Logo",
           tint = AccentGold,
-          modifier = Modifier.size(20.dp)
+          modifier = Modifier.size(42.dp)
         )
       }
-      Spacer(modifier = Modifier.width(14.dp))
-      Column {
-        Text(
-          text = title,
-          color = Color.White,
-          fontSize = 13.sp,
-          fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-          text = subtitle,
-          color = Color(0xFF94A3B8),
-          fontSize = 11.sp
-        )
+
+      Spacer(modifier = Modifier.height(14.dp))
+
+      Text(
+        text = "FinPulse",
+        fontSize = 28.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White
+      )
+
+      Text(
+        text = "Secure Financial Intelligence & Budget Governance",
+        fontSize = 12.sp,
+        color = Color(0xFF94A3B8),
+        textAlign = TextAlign.Center
+      )
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // Hardware Device Security Pill
+      Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = NavySurface),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Row(
+          modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Icon(
+            imageVector = Icons.Default.PhonelinkLock,
+            contentDescription = null,
+            tint = AccentGold,
+            modifier = Modifier.size(16.dp)
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = "Hardware Device Bound: ${viewModel.deviceId.take(16)}...",
+            fontSize = 11.sp,
+            color = Color(0xFFCBD5E1)
+          )
+        }
       }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      // Error banner
+      if (errorMessage != null) {
+        Card(
+          shape = RoundedCornerShape(12.dp),
+          colors = CardDefaults.cardColors(containerColor = ExpenseRed.copy(alpha = 0.15f)),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Text(
+            text = errorMessage!!,
+            color = ExpenseRed,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(12.dp)
+          )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+      }
+
+      // Email field
+      OutlinedTextField(
+        value = email,
+        onValueChange = {
+          email = it
+          errorMessage = null
+        },
+        label = { Text("Email Address", color = Color(0xFF94A3B8)) },
+        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = AccentGold) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        colors = OutlinedTextFieldDefaults.colors(
+          focusedTextColor = Color.White,
+          unfocusedTextColor = Color.White,
+          focusedBorderColor = AccentGold,
+          unfocusedBorderColor = Color(0xFF334155)
+        ),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("login_email_input")
+      )
+
+      Spacer(modifier = Modifier.height(12.dp))
+
+      // Password field
+      OutlinedTextField(
+        value = password,
+        onValueChange = {
+          password = it
+          errorMessage = null
+        },
+        label = { Text("Password", color = Color(0xFF94A3B8)) },
+        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = AccentGold) },
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+          IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            Icon(
+              imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+              contentDescription = null,
+              tint = Color(0xFF94A3B8)
+            )
+          }
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        colors = OutlinedTextFieldDefaults.colors(
+          focusedTextColor = Color.White,
+          unfocusedTextColor = Color.White,
+          focusedBorderColor = AccentGold,
+          unfocusedBorderColor = Color(0xFF334155)
+        ),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("login_password_input")
+      )
+
+      // Remember Me & Forgot Password Row
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.clickable { rememberMe = !rememberMe }
+        ) {
+          Checkbox(
+            checked = rememberMe,
+            onCheckedChange = { rememberMe = it },
+            colors = CheckboxDefaults.colors(checkedColor = AccentGold)
+          )
+          Text("Remember Me", color = Color(0xFFCBD5E1), fontSize = 12.sp)
+        }
+
+        TextButton(
+          onClick = { showForgotPasswordDialog = true },
+          modifier = Modifier.testTag("forgot_password_button")
+        ) {
+          Text("Forgot Password?", color = AccentGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        }
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      // Login Button
+      if (isLoading) {
+        CircularProgressIndicator(color = AccentGold, modifier = Modifier.size(36.dp))
+      } else {
+        Button(
+          onClick = {
+            if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+              errorMessage = "Please enter a valid email address."
+              return@Button
+            }
+            if (password.isBlank()) {
+              errorMessage = "Please enter your password."
+              return@Button
+            }
+
+            isLoading = true
+            errorMessage = null
+            viewModel.loginWithEmailPassword(
+              email = email.trim(),
+              pass = password,
+              rememberMe = rememberMe,
+              onSuccess = { isFirstTime ->
+                isLoading = false
+                onLoginSuccess(isFirstTime)
+              },
+              onError = { err ->
+                isLoading = false
+                errorMessage = err
+              }
+            )
+          },
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .testTag("login_submit_button"),
+          shape = RoundedCornerShape(16.dp),
+          colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+        ) {
+          Text(
+            text = "Sign In",
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      // Register link
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text("Don't have an account?", color = Color(0xFF94A3B8), fontSize = 13.sp)
+        TextButton(
+          onClick = onNavigateToRegister,
+          modifier = Modifier.testTag("create_account_button")
+        ) {
+          Text("Create Account", color = AccentGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+      }
+
+      Spacer(modifier = Modifier.height(24.dp))
     }
+  }
+
+  // Forgot Password Dialog
+  if (showForgotPasswordDialog) {
+    ForgotPasswordDialog(
+      initialEmail = email,
+      viewModel = viewModel,
+      onDismiss = { showForgotPasswordDialog = false }
+    )
   }
 }

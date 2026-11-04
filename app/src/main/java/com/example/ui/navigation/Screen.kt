@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
   object Login : Screen("login", "Login")
+  object Register : Screen("register", "Register")
   object Onboarding : Screen("onboarding", "Onboarding")
 
   // Bottom Navigation tabs
@@ -23,6 +24,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
   object AddTransaction : Screen("add_transaction", "Add Transaction")
   object EditTransaction : Screen("edit_transaction", "Edit Transaction")
   object WhatsAppLinking : Screen("whatsapp_linking", "WhatsApp Linking")
+  object AppRestrictions : Screen("app_restrictions", "App Restrictions")
   object EmergencyApproval : Screen("emergency_approval", "Emergency Request")
 
   companion object {

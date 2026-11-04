@@ -13,8 +13,12 @@ data class UserSettings(
   val onboardingCompleted: Boolean = false,
   val themeMode: String = "SYSTEM", // LIGHT, DARK, SYSTEM
   val aiProvider: String = "GEMINI", // GEMINI, OPENAI
+  val isAiConfigured: Boolean = false,
   val backendUrl: String = "https://finpulse-api.railway.app",
   val authToken: String? = null,
+  val refreshToken: String? = null,
+  val deviceId: String = "",
   val isWhatsAppConnected: Boolean = false,
-  val whatsAppPhoneNumber: String? = null
+  val whatsAppPhoneNumber: String? = null,
+  val accessibilityServiceEnabled: Boolean = false
 )

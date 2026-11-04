@@ -9,9 +9,16 @@ const categoryController = require('../controllers/categoryController');
 const settingsController = require('../controllers/settingsController');
 const aiController = require('../controllers/aiController');
 const integrationController = require('../controllers/integrationController');
+const restrictionController = require('../controllers/restrictionController');
 
-// 1. Authentication
-router.post('/auth/google', authController.googleLogin);
+// 1. Authentication & Device Binding (Tasks 1 & 2)
+router.post('/auth/register', authController.register);
+router.post('/auth/login', authController.login);
+router.post('/auth/forgot-password', authController.forgotPassword);
+router.post('/auth/reset-password', authController.resetPassword);
+router.post('/auth/refresh-token', authController.refreshToken);
+router.get('/auth/device-status', authController.checkDeviceStatus);
+router.post('/auth/device-reset', authController.resetDevice);
 router.get('/auth/profile', requireAuth, authController.getProfile);
 
 // 2. Dashboard & Analytics
@@ -35,13 +42,22 @@ router.delete('/categories/:id', requireAuth, categoryController.deleteCategory)
 router.get('/settings', requireAuth, settingsController.getSettings);
 router.put('/settings', requireAuth, settingsController.updateSettings);
 
-// 6. AI Assistant & Future Emergency Approval
+// 6. Real AI Assistant & Provider Configuration (Task 4)
+router.get('/ai/config', requireAuth, aiController.getAiConfig);
+router.post('/ai/validate-and-save', requireAuth, aiController.validateAndSaveConfig);
+router.delete('/ai/config', requireAuth, aiController.deleteAiConfig);
 router.post('/ai/analyze', requireAuth, aiController.analyzeSpending);
 router.post('/ai/emergency-review', requireAuth, aiController.reviewEmergencyRequest);
 
-// 7. Integrations (WhatsApp, Bank)
+// 7. Real WhatsApp Integrations (Task 3)
 router.get('/integrations', requireAuth, integrationController.getIntegrations);
+router.get('/integrations/whatsapp/status', requireAuth, integrationController.getWhatsAppStatus);
 router.post('/integrations/whatsapp/connect', requireAuth, integrationController.connectWhatsApp);
 router.delete('/integrations/whatsapp/disconnect', requireAuth, integrationController.disconnectWhatsApp);
+
+// 8. Real App Restrictions & Accessibility Logging (Task 5)
+router.get('/restrictions', requireAuth, restrictionController.getRestrictions);
+router.post('/restrictions', requireAuth, restrictionController.updateRestrictions);
+router.post('/restrictions/log-event', requireAuth, restrictionController.logRestrictionEvent);
 
 module.exports = router;

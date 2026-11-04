@@ -20,6 +20,8 @@ class PreferenceManager(private val context: Context) {
     private val KEY_USER_NAME = stringPreferencesKey("user_name")
     private val KEY_USER_PHOTO = stringPreferencesKey("user_photo")
     private val KEY_AUTH_TOKEN = stringPreferencesKey("auth_token")
+    private val KEY_REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+    private val KEY_DEVICE_ID = stringPreferencesKey("device_id")
 
     private val KEY_INITIAL_BALANCE = doublePreferencesKey("initial_balance")
     private val KEY_DAILY_LIMIT = doublePreferencesKey("daily_limit")
@@ -30,10 +32,12 @@ class PreferenceManager(private val context: Context) {
     private val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
     private val KEY_AI_PROVIDER = stringPreferencesKey("ai_provider")
+    private val KEY_IS_AI_CONFIGURED = booleanPreferencesKey("is_ai_configured")
     private val KEY_BACKEND_URL = stringPreferencesKey("backend_url")
 
     private val KEY_WHATSAPP_CONNECTED = booleanPreferencesKey("whatsapp_connected")
     private val KEY_WHATSAPP_PHONE = stringPreferencesKey("whatsapp_phone")
+    private val KEY_ACCESSIBILITY_ENABLED = booleanPreferencesKey("accessibility_enabled")
   }
 
   val userSettingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
@@ -50,20 +54,34 @@ class PreferenceManager(private val context: Context) {
       onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
       themeMode = prefs[KEY_THEME_MODE] ?: "SYSTEM",
       aiProvider = prefs[KEY_AI_PROVIDER] ?: "GEMINI",
+      isAiConfigured = prefs[KEY_IS_AI_CONFIGURED] ?: false,
       backendUrl = prefs[KEY_BACKEND_URL] ?: "https://finpulse-api.railway.app",
       authToken = prefs[KEY_AUTH_TOKEN],
+      refreshToken = prefs[KEY_REFRESH_TOKEN],
+      deviceId = prefs[KEY_DEVICE_ID] ?: "",
       isWhatsAppConnected = prefs[KEY_WHATSAPP_CONNECTED] ?: false,
-      whatsAppPhoneNumber = prefs[KEY_WHATSAPP_PHONE]
+      whatsAppPhoneNumber = prefs[KEY_WHATSAPP_PHONE],
+      accessibilityServiceEnabled = prefs[KEY_ACCESSIBILITY_ENABLED] ?: false
     )
   }
 
-  suspend fun saveAuthProfile(id: String, email: String, name: String, photoUrl: String?, token: String?) {
+  suspend fun saveAuthProfile(
+    id: String,
+    email: String,
+    name: String,
+    photoUrl: String?,
+    token: String?,
+    refreshToken: String?,
+    deviceId: String?
+  ) {
     context.dataStore.edit { prefs ->
       prefs[KEY_USER_ID] = id
       prefs[KEY_USER_EMAIL] = email
       prefs[KEY_USER_NAME] = name
       photoUrl?.let { prefs[KEY_USER_PHOTO] = it } ?: prefs.remove(KEY_USER_PHOTO)
       token?.let { prefs[KEY_AUTH_TOKEN] = it } ?: prefs.remove(KEY_AUTH_TOKEN)
+      refreshToken?.let { prefs[KEY_REFRESH_TOKEN] = it } ?: prefs.remove(KEY_REFRESH_TOKEN)
+      deviceId?.let { prefs[KEY_DEVICE_ID] = it }
     }
   }
 
@@ -106,6 +124,18 @@ class PreferenceManager(private val context: Context) {
     }
   }
 
+  suspend fun setAiConfigured(isConfigured: Boolean) {
+    context.dataStore.edit { prefs ->
+      prefs[KEY_IS_AI_CONFIGURED] = isConfigured
+    }
+  }
+
+  suspend fun setAccessibilityServiceEnabled(enabled: Boolean) {
+    context.dataStore.edit { prefs ->
+      prefs[KEY_ACCESSIBILITY_ENABLED] = enabled
+    }
+  }
+
   suspend fun setOnboardingCompleted(completed: Boolean) {
     context.dataStore.edit { prefs ->
       prefs[KEY_ONBOARDING_COMPLETED] = completed
@@ -126,6 +156,7 @@ class PreferenceManager(private val context: Context) {
       prefs.remove(KEY_USER_NAME)
       prefs.remove(KEY_USER_PHOTO)
       prefs.remove(KEY_AUTH_TOKEN)
+      prefs.remove(KEY_REFRESH_TOKEN)
       prefs[KEY_ONBOARDING_COMPLETED] = false
     }
   }

@@ -34,19 +34,21 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PhonelinkLock
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.CategoryEntity
@@ -78,6 +81,7 @@ import com.example.viewmodel.SettingsViewModel
 fun SettingsScreen(
   viewModel: SettingsViewModel,
   onNavigateToWhatsApp: () -> Unit,
+  onNavigateToAppRestrictions: () -> Unit,
   onReplayTutorial: () -> Unit,
   onLogout: () -> Unit,
   modifier: Modifier = Modifier
@@ -85,16 +89,16 @@ fun SettingsScreen(
   val context = LocalContext.current
   val settings by viewModel.userSettings.collectAsState()
   val categories by viewModel.categories.collectAsState()
+  val aiConfig by viewModel.aiConfig.collectAsState()
 
   var showDailyLimitDialog by remember { mutableStateOf(false) }
   var showInitialBalanceDialog by remember { mutableStateOf(false) }
   var showBankSelectionDialog by remember { mutableStateOf(false) }
   var showAddCategoryDialog by remember { mutableStateOf(false) }
-  var showAiProviderDialog by remember { mutableStateOf(false) }
+  var showRealAiConfigDialog by remember { mutableStateOf(false) }
   var showThemeDialog by remember { mutableStateOf(false) }
   var showSecurityDialog by remember { mutableStateOf(false) }
   var showBankIntegrationInfoDialog by remember { mutableStateOf(false) }
-  var showPaymentRestrictionInfoDialog by remember { mutableStateOf(false) }
 
   Scaffold(
     containerColor = MaterialTheme.colorScheme.background
@@ -110,63 +114,87 @@ fun SettingsScreen(
       item {
         Column {
           Text(
-            text = "Settings & Configurations",
+            text = "Settings & Governance",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
           )
           Text(
-            text = "Personal profile, banking, limits, and integrations",
+            text = "Account credentials, device binding, AI engines & restrictions",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
           )
         }
       }
 
-      // 1. Profile & Google Account Card
+      // 1. Profile & One Device = One Account Card (Tasks 1 & 2)
       item {
         Card(
           shape = RoundedCornerShape(20.dp),
           colors = CardDefaults.cardColors(containerColor = NavySurface),
           modifier = Modifier.fillMaxWidth().testTag("profile_settings_card")
         ) {
-          Row(
-            modifier = Modifier.padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Box(
-              modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(AccentGold),
-              contentAlignment = Alignment.Center
-            ) {
-              Text(
-                text = (settings.userName.takeIf { it.isNotBlank() } ?: "U").take(1).uppercase(),
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Color(0xFF0F172A)
-              )
+          Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Box(
+                modifier = Modifier
+                  .size(48.dp)
+                  .clip(CircleShape)
+                  .background(AccentGold),
+                contentAlignment = Alignment.Center
+              ) {
+                Text(
+                  text = (settings.userName.takeIf { it.isNotBlank() } ?: "U").take(1).uppercase(),
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 20.sp,
+                  color = Color(0xFF0F172A)
+                )
+              }
+              Spacer(modifier = Modifier.width(14.dp))
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                  text = settings.userName.ifBlank { "FinPulse User" },
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White
+                )
+                Text(
+                  text = settings.userEmail.ifBlank { "user@finpulse.app" },
+                  fontSize = 12.sp,
+                  color = Color(0xFF94A3B8)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                  text = "Email & Password Verified",
+                  fontSize = 10.sp,
+                  color = IncomeGreen,
+                  fontWeight = FontWeight.SemiBold
+                )
+              }
             }
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-              Text(
-                text = settings.userName.ifBlank { "FinPulse User" },
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Keystore Device Binding Badge
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF0D1B2A))
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(
+                imageVector = Icons.Default.PhonelinkLock,
+                contentDescription = null,
+                tint = AccentGold,
+                modifier = Modifier.size(14.dp)
               )
+              Spacer(modifier = Modifier.width(6.dp))
               Text(
-                text = settings.userEmail.ifBlank { "google.auth@gmail.com" },
-                fontSize = 12.sp,
-                color = Color(0xFF94A3B8)
-              )
-              Spacer(modifier = Modifier.height(4.dp))
-              Text(
-                text = "Google Account Verified",
+                text = "Device Bound: ${(settings.deviceId.takeIf { it.isNotBlank() } ?: viewModel.deviceId).take(16)}... (Android Keystore)",
                 fontSize = 10.sp,
-                color = AccentGold,
-                fontWeight = FontWeight.SemiBold
+                color = Color(0xFFCBD5E1)
               )
             }
           }
@@ -211,7 +239,33 @@ fun SettingsScreen(
         }
       }
 
-      // 3. Categories Management
+      // 3. App Restriction & Accessibility Service (Task 5)
+      item {
+        Text(
+          text = "Security & Budget Enforcement (Task 5)",
+          fontSize = 14.sp,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.primary
+        )
+      }
+
+      item {
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+          Column {
+            SettingsItemRow(
+              icon = Icons.Default.Block,
+              title = "Payment App Restrictions",
+              subtitle = if (settings.accessibilityServiceEnabled) "Enforcement Service ACTIVE • Monitored" else "Configure UPI app blocking when limit exceeded",
+              onClick = onNavigateToAppRestrictions
+            )
+          }
+        }
+      }
+
+      // 4. Categories Management
       item {
         Row(
           modifier = Modifier.fillMaxWidth(),
@@ -275,10 +329,10 @@ fun SettingsScreen(
         }
       }
 
-      // 4. Integrations & Future Modules
+      // 5. Integrations & Real AI (Tasks 3 & 4)
       item {
         Text(
-          text = "Integrations & Future Modules",
+          text = "Real Integrations & AI Engine",
           fontSize = 14.sp,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary
@@ -292,37 +346,31 @@ fun SettingsScreen(
         ) {
           Column {
             SettingsItemRow(
-              icon = Icons.Default.Phone,
-              title = "WhatsApp Integration",
-              subtitle = if (settings.isWhatsAppConnected) "Linked with ${settings.whatsAppPhoneNumber}" else "Link phone for chat tracking",
-              onClick = onNavigateToWhatsApp
+              icon = Icons.Default.AutoAwesome,
+              title = "AI Intelligence Engine",
+              subtitle = if (aiConfig?.isConfigured == true) "Active: ${aiConfig?.provider} (Validated Live)" else "Configure Gemini / OpenAI API Key",
+              onClick = { showRealAiConfigDialog = true }
             )
             SettingsItemRow(
-              icon = Icons.Default.AutoAwesome,
-              title = "AI Engine Configuration",
-              subtitle = "Active Provider: ${settings.aiProvider}",
-              onClick = { showAiProviderDialog = true }
+              icon = Icons.Default.Phone,
+              title = "WhatsApp Cloud API Integration",
+              subtitle = if (settings.isWhatsAppConnected) "Active with ${settings.whatsAppPhoneNumber}" else "Link phone for chat tracking",
+              onClick = onNavigateToWhatsApp
             )
             SettingsItemRow(
               icon = Icons.Default.AccountBalance,
               title = "Bank Transaction Integration",
-              subtitle = "SBI Supported • Authorized SMS / Notifications architecture",
+              subtitle = "SBI Supported • SMS Pattern Engine",
               onClick = { showBankIntegrationInfoDialog = true }
-            )
-            SettingsItemRow(
-              icon = Icons.Default.Block,
-              title = "Payment App Restrictions (Future)",
-              subtitle = "Spending limit warnings & optional app restriction specs",
-              onClick = { showPaymentRestrictionInfoDialog = true }
             )
           }
         }
       }
 
-      // 5. App Preferences & Security
+      // 6. App Preferences & Security
       item {
         Text(
-          text = "Preferences & Help",
+          text = "Preferences & System Integrity",
           fontSize = 14.sp,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary
@@ -343,14 +391,14 @@ fun SettingsScreen(
             )
             SettingsItemRow(
               icon = Icons.Default.Help,
-              title = "Interactive Tutorial & Help Center",
-              subtitle = "Replay the 10-step guided onboarding walkthrough",
+              title = "Interactive Tutorial",
+              subtitle = "Replay onboarding walkthrough",
               onClick = onReplayTutorial
             )
             SettingsItemRow(
               icon = Icons.Default.Security,
-              title = "Privacy & Zero-Trust Cloud Security",
-              subtitle = "cPanel MySQL / Railway HTTPS Architecture",
+              title = "Zero-Trust Architecture & Device Reset",
+              subtitle = "View hardware binding & encryption details",
               onClick = { showSecurityDialog = true }
             )
           }
@@ -384,6 +432,110 @@ fun SettingsScreen(
 
   // --- Dialogs ---
 
+  // Real AI Configuration Dialog (Task 4)
+  if (showRealAiConfigDialog) {
+    var selectedProvider by remember { mutableStateOf(aiConfig?.provider ?: "GEMINI") }
+    var apiKeyInput by remember { mutableStateOf("") }
+    var isValidating by remember { mutableStateOf(false) }
+    var validationError by remember { mutableStateOf<String?>(null) }
+    var validationSuccess by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+      onDismissRequest = { showRealAiConfigDialog = false },
+      title = { Text("Configure Real AI Intelligence", fontWeight = FontWeight.Bold) },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          Text(
+            text = "Select your AI provider and enter your API key. The backend tests the key live with Google Gemini or OpenAI before securely saving it (encrypted with AES-256-CBC).",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+
+          if (validationError != null) {
+            Text(text = validationError!!, color = ExpenseRed, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+          }
+          if (validationSuccess != null) {
+            Text(text = validationSuccess!!, color = IncomeGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+          }
+
+          // Provider selector
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+              onClick = { selectedProvider = "GEMINI" },
+              colors = ButtonDefaults.buttonColors(
+                containerColor = if (selectedProvider == "GEMINI") PrimaryBlue else Color.LightGray
+              ),
+              modifier = Modifier.weight(1f)
+            ) {
+              Text("Gemini", fontSize = 12.sp)
+            }
+
+            Button(
+              onClick = { selectedProvider = "OPENAI" },
+              colors = ButtonDefaults.buttonColors(
+                containerColor = if (selectedProvider == "OPENAI") PrimaryBlue else Color.LightGray
+              ),
+              modifier = Modifier.weight(1f)
+            ) {
+              Text("OpenAI", fontSize = 12.sp)
+            }
+          }
+
+          OutlinedTextField(
+            value = apiKeyInput,
+            onValueChange = {
+              apiKeyInput = it
+              validationError = null
+              validationSuccess = null
+            },
+            label = { Text("API Key (e.g. AIzaSy... or sk-...)") },
+            placeholder = { Text(if (selectedProvider == "GEMINI") "AIzaSy..." else "sk-...") },
+            visualTransformation = PasswordVisualTransformation(),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().testTag("ai_api_key_input")
+          )
+        }
+      },
+      confirmButton = {
+        if (isValidating) {
+          CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        } else {
+          Button(
+            onClick = {
+              if (apiKeyInput.trim().isBlank()) {
+                validationError = "Please enter an API key."
+                return@Button
+              }
+              isValidating = true
+              validationError = null
+              validationSuccess = null
+              viewModel.validateAndSaveAiConfig(
+                provider = selectedProvider,
+                apiKey = apiKeyInput.trim(),
+                onSuccess = { msg ->
+                  isValidating = false
+                  validationSuccess = msg
+                  Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                  showRealAiConfigDialog = false
+                },
+                onError = { err ->
+                  isValidating = false
+                  validationError = err
+                }
+              )
+            },
+            modifier = Modifier.testTag("validate_save_ai_key_button")
+          ) {
+            Text("Validate & Save Key")
+          }
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { showRealAiConfigDialog = false }) { Text("Cancel") }
+      }
+    )
+  }
+
   // Daily Spending Limit Dialog
   if (showDailyLimitDialog) {
     var limitInput by remember { mutableStateOf(settings.dailySpendingLimit.toInt().toString()) }
@@ -392,7 +544,7 @@ fun SettingsScreen(
       title = { Text("Daily Spending Limit") },
       text = {
         Column {
-          Text("Set your daily expense threshold in ₹. The app will warn you when approaching or exceeding this limit.")
+          Text("Set your daily expense threshold in ₹. The app will warn you and trigger restrictions when exceeded.")
           Spacer(modifier = Modifier.height(10.dp))
           OutlinedTextField(
             value = limitInput,
@@ -531,43 +683,6 @@ fun SettingsScreen(
     )
   }
 
-  // AI Provider Dialog
-  if (showAiProviderDialog) {
-    AlertDialog(
-      onDismissRequest = { showAiProviderDialog = false },
-      title = { Text("AI Provider Configuration") },
-      text = {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text("Select active AI intelligence engine for spending pattern analysis:")
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable {
-                viewModel.updateAiProvider("GEMINI")
-                showAiProviderDialog = false
-              }
-              .padding(8.dp)
-          ) {
-            Text("Google Gemini API (Active)", fontWeight = if (settings.aiProvider == "GEMINI") FontWeight.Bold else FontWeight.Normal)
-          }
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable {
-                viewModel.updateAiProvider("OPENAI")
-                showAiProviderDialog = false
-              }
-              .padding(8.dp)
-          ) {
-            Text("OpenAI GPT-4o (Backend Configuration)", fontWeight = if (settings.aiProvider == "OPENAI") FontWeight.Bold else FontWeight.Normal)
-          }
-        }
-      },
-      confirmButton = {},
-      dismissButton = { TextButton(onClick = { showAiProviderDialog = false }) { Text("Close") } }
-    )
-  }
-
   // Theme Appearance Dialog
   if (showThemeDialog) {
     AlertDialog(
@@ -602,7 +717,7 @@ fun SettingsScreen(
       title = { Text("Bank Transaction Architecture") },
       text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text("Section 13 Future Bank Architecture Specifications:")
+          Text("Bank Integration Architecture Specifications:")
           Text("• Default: State Bank of India (SBI).")
           Text("• Non-invasive legal architecture: Authorized bank SMS pattern recognition & bank-authorized push notifications.")
           Text("• Strict Zero-Trust: Never requests banking passwords, OTPs, PINs, or credentials.")
@@ -613,34 +728,17 @@ fun SettingsScreen(
     )
   }
 
-  // Future Payment Restriction Info
-  if (showPaymentRestrictionInfoDialog) {
-    AlertDialog(
-      onDismissRequest = { showPaymentRestrictionInfoDialog = false },
-      title = { Text("Payment App Restriction Architecture") },
-      text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text("Section 14 Future Payment Restriction Module:")
-          Text("• Version 1 implements real-time monitoring and visual warnings (Green, Orange, Red).")
-          Text("• Future Android module uses Accessibility/UsageStats APIs with explicit user authorization.")
-          Text("• Emergency spending exception allowance gateway allows academic/medical bypass.")
-        }
-      },
-      confirmButton = { Button(onClick = { showPaymentRestrictionInfoDialog = false }) { Text("Understood") } }
-    )
-  }
-
   // Security & Cloud Architecture Info
   if (showSecurityDialog) {
     AlertDialog(
       onDismissRequest = { showSecurityDialog = false },
-      title = { Text("Privacy & Security Architecture") },
+      title = { Text("Privacy & Zero-Trust Cloud Architecture") },
       text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text("• User isolation: Each user record is strictly scoped by verified Google ID.")
+          Text("• One Device = One Account: Bound via Android Keystore EC Key & Hardware Fingerprint.")
           Text("• Monies stored using DECIMAL(14,2) for exact mathematical precision.")
-          Text("• Cloud backend: Node.js Express deployed on Railway with HTTPS encryption.")
-          Text("• Database: Dedicated MySQL hosted on cPanel with indexed foreign keys.")
+          Text("• AI Keys: Encrypted at rest using AES-256-CBC with per-user salt.")
+          Text("• Session tokens: JWT with automatic refresh cycle and X-Device-Id verification.")
           Text("• Offline local caching: Encrypted Android Room with idempotent sync keys.")
         }
       },

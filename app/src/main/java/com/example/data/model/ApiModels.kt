@@ -3,20 +3,88 @@ package com.example.data.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+// ==========================================
+// AUTHENTICATION & DEVICE BINDING MODELS
+// ==========================================
+
 @JsonClass(generateAdapter = true)
-data class AuthRequest(
-  val idToken: String? = null,
-  val email: String? = null,
-  val name: String? = null
+data class RegisterRequest(
+  val name: String,
+  val email: String,
+  val password: String,
+  val confirmPassword: String,
+  val deviceId: String,
+  val deviceFingerprint: String? = null,
+  val deviceModel: String? = null,
+  val osVersion: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class LoginRequest(
+  val email: String,
+  val password: String,
+  val rememberMe: Boolean = true,
+  val deviceId: String? = null,
+  val deviceFingerprint: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class AuthResponse(
   val success: Boolean,
   val token: String? = null,
+  val refreshToken: String? = null,
   val isFirstTime: Boolean = false,
+  val message: String? = null,
+  val code: String? = null,
+  val user: UserDto? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class UserDto(
+  val id: String,
+  val email: String,
+  val name: String,
+  val profileImage: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ForgotPasswordRequest(
+  val email: String
+)
+
+@JsonClass(generateAdapter = true)
+data class ResetPasswordRequest(
+  val email: String,
+  val otp: String,
+  val newPassword: String,
+  val confirmPassword: String
+)
+
+@JsonClass(generateAdapter = true)
+data class RefreshTokenRequest(
+  val refreshToken: String
+)
+
+@JsonClass(generateAdapter = true)
+data class DeviceStatusResponse(
+  val success: Boolean,
+  val isBound: Boolean = false,
+  val status: String? = null,
+  val boundToMaskedEmail: String? = null,
   val message: String? = null
 )
+
+@JsonClass(generateAdapter = true)
+data class DeviceResetRequest(
+  val email: String,
+  val password: String,
+  val deviceId: String,
+  val reason: String? = null
+)
+
+// ==========================================
+// TRANSACTION & SYNC MODELS
+// ==========================================
 
 @JsonClass(generateAdapter = true)
 data class TransactionDto(
@@ -59,6 +127,10 @@ data class SyncBatchResponse(
   val results: List<SyncBatchResult>? = null
 )
 
+// ==========================================
+// DASHBOARD & SUMMARY MODELS
+// ==========================================
+
 @JsonClass(generateAdapter = true)
 data class DashboardSummaryResponse(
   val success: Boolean,
@@ -100,6 +172,31 @@ data class MonthlyData(
   val spendingPercentage: Double = 0.0
 )
 
+// ==========================================
+// REAL AI MODELS (TASK 4)
+// ==========================================
+
+@JsonClass(generateAdapter = true)
+data class ValidateAiKeyRequest(
+  val provider: String, // GEMINI, OPENAI
+  val apiKey: String
+)
+
+@JsonClass(generateAdapter = true)
+data class AiConfigResponse(
+  val success: Boolean,
+  val config: AiConfigDto? = null,
+  val message: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class AiConfigDto(
+  val provider: String = "GEMINI",
+  val isConfigured: Boolean = false,
+  val keyStatus: String = "UNCHECKED",
+  val lastValidatedAt: String? = null
+)
+
 @JsonClass(generateAdapter = true)
 data class AiAnalysisRequest(
   val customQuery: String? = null
@@ -108,7 +205,9 @@ data class AiAnalysisRequest(
 @JsonClass(generateAdapter = true)
 data class AiAnalysisResponse(
   val success: Boolean,
+  val provider: String? = null,
   val analysis: String,
+  val requiresConfiguration: Boolean = false,
   val message: String? = null
 )
 
@@ -128,13 +227,67 @@ data class EmergencyReviewResponse(
   val requiresUserConfirmation: Boolean = true
 )
 
+// ==========================================
+// REAL WHATSAPP MODELS (TASK 3)
+// ==========================================
+
 @JsonClass(generateAdapter = true)
-data class WhatsAppConnectRequest(
-  val phoneNumber: String
+data class MetaWhatsAppConnectRequest(
+  val phoneNumber: String,
+  val accessToken: String? = null,
+  val phoneNumberId: String? = null,
+  val wabaId: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class WhatsAppStatusResponse(
+  val success: Boolean,
+  val status: String = "NOT_CONNECTED", // NOT_CONNECTED, CONNECTING, CONNECTED, CONNECTION_FAILED, DISCONNECTED
+  val phoneNumber: String? = null,
+  val verifiedName: String? = null,
+  val lastSyncedAt: String? = null,
+  val errorMessage: String? = null,
+  val message: String? = null
+) {
+  val isConnected: Boolean get() = status == "CONNECTED"
+  val connected: Boolean get() = status == "CONNECTED"
+}
+
+// ==========================================
+// REAL APP RESTRICTIONS MODELS (TASK 5)
+// ==========================================
+
+@JsonClass(generateAdapter = true)
+data class AppRestrictionItem(
+  val packageName: String,
+  val appName: String,
+  val isEnabled: Boolean = true
+)
+
+@JsonClass(generateAdapter = true)
+data class AppRestrictionsResponse(
+  val success: Boolean,
+  val restrictions: List<AppRestrictionItem> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class UpdateRestrictionsRequest(
+  val restrictions: List<AppRestrictionItem>
+)
+
+@JsonClass(generateAdapter = true)
+data class LogRestrictionEventRequest(
+  val packageName: String,
+  val appName: String,
+  val dailyLimit: Double,
+  val amountSpent: Double,
+  val amountExceeded: Double,
+  val actionTaken: String = "BLOCKED"
 )
 
 @JsonClass(generateAdapter = true)
 data class GenericApiResponse(
   val success: Boolean,
-  val message: String? = null
+  val message: String? = null,
+  val code: String? = null
 )
