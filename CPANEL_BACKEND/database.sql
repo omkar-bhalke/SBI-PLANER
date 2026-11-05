@@ -262,4 +262,84 @@ CREATE TABLE `user_tokens` (
   CONSTRAINT `fk_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: pending_transactions (SBI WhatsApp Mini Statement Ingestion)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `pending_transactions`;
+CREATE TABLE `pending_transactions` (
+  `id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SBI_WHATSAPP_STATEMENT',
+  `account_number` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT 'xxx188',
+  `transaction_date` date NOT NULL,
+  `amount` decimal(14,2) NOT NULL,
+  `type` enum('DEBIT','CREDIT') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DEBIT',
+  `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `suggested_category` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Bank Transfer',
+  `idempotency_hash` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('PENDING','CONFIRMED','DISMISSED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `confirmed_transaction_id` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_pending_idempotency` (`user_id`, `idempotency_hash`),
+  KEY `idx_pending_user_status` (`user_id`, `status`),
+  CONSTRAINT `fk_pending_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: balance_history (Historical Bank Balances from Statements)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `balance_history`;
+CREATE TABLE `balance_history` (
+  `id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `account_number` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'xxx188',
+  `balance` decimal(14,2) NOT NULL,
+  `raw_statement_date` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `statement_text` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SBI_WHATSAPP',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_balance_user_created` (`user_id`, `created_at`),
+  CONSTRAINT `fk_balance_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: automation_settings (Config for Railway & SBI Automated Cycles)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `automation_settings`;
+CREATE TABLE `automation_settings` (
+  `id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sbi_target_phone` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '919022690226',
+  `interval_minutes` int(11) NOT NULL DEFAULT 30,
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `railway_api_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `railway_api_token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_run_at` datetime DEFAULT NULL,
+  `last_status` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT 'IDLE',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_automation_user` (`user_id`),
+  CONSTRAINT `fk_automation_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: automation_logs (Audit Trail of Automation & Statement Fetches)
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `automation_logs`;
+CREATE TABLE `automation_logs` (
+  `id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `event_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `details` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_logs_user_created` (`user_id`, `created_at`),
+  CONSTRAINT `fk_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

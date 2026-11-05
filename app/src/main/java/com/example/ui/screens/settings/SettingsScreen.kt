@@ -82,6 +82,8 @@ fun SettingsScreen(
   viewModel: SettingsViewModel,
   onNavigateToWhatsApp: () -> Unit,
   onNavigateToAppRestrictions: () -> Unit,
+  onNavigateToAutomationSettings: () -> Unit = {},
+  onNavigateToPendingTransactions: () -> Unit = {},
   onReplayTutorial: () -> Unit,
   onLogout: () -> Unit,
   modifier: Modifier = Modifier
@@ -346,6 +348,18 @@ fun SettingsScreen(
         ) {
           Column {
             SettingsItemRow(
+              icon = Icons.Default.TrackChanges,
+              title = "SBI Statement Automation",
+              subtitle = "Automated WhatsApp Mini Statement extraction & balance sync",
+              onClick = onNavigateToAutomationSettings
+            )
+            SettingsItemRow(
+              icon = Icons.Default.Category,
+              title = "Pending Statement Review",
+              subtitle = "Review & confirm unassigned bank transactions",
+              onClick = onNavigateToPendingTransactions
+            )
+            SettingsItemRow(
               icon = Icons.Default.AutoAwesome,
               title = "AI Intelligence Engine",
               subtitle = if (aiConfig?.isConfigured == true) "Active: ${aiConfig?.provider} (Validated Live)" else "Configure Gemini / OpenAI API Key",
@@ -353,14 +367,14 @@ fun SettingsScreen(
             )
             SettingsItemRow(
               icon = Icons.Default.Phone,
-              title = "WhatsApp Cloud API Integration",
-              subtitle = if (settings.isWhatsAppConnected) "Active with ${settings.whatsAppPhoneNumber}" else "Link phone for chat tracking",
+              title = "WhatsApp Integration",
+              subtitle = if (settings.isWhatsAppConnected) "Active with ${settings.whatsAppPhoneNumber}" else "Link WhatsApp via QR/Pairing code or Meta API",
               onClick = onNavigateToWhatsApp
             )
             SettingsItemRow(
               icon = Icons.Default.AccountBalance,
               title = "Bank Transaction Integration",
-              subtitle = "SBI Supported • SMS Pattern Engine",
+              subtitle = "SBI Supported • WhatsApp & SMS Statement Engine",
               onClick = { showBankIntegrationInfoDialog = true }
             )
           }

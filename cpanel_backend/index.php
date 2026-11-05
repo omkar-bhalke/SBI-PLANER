@@ -16,6 +16,9 @@ require_once __DIR__ . '/controllers/SettingsController.php';
 require_once __DIR__ . '/controllers/AiController.php';
 require_once __DIR__ . '/controllers/IntegrationController.php';
 require_once __DIR__ . '/controllers/RestrictionController.php';
+require_once __DIR__ . '/controllers/PendingTransactionController.php';
+require_once __DIR__ . '/controllers/BalanceController.php';
+require_once __DIR__ . '/controllers/AutomationController.php';
 
 // 1. Resolve Route & Method
 $method = $_SERVER['REQUEST_METHOD'];
@@ -148,6 +151,41 @@ try {
         RestrictionController::update();
     } elseif ($route === 'restrictions/log-event' && $method === 'POST') {
         RestrictionController::logEvent();
+    }
+
+    // ------------------------------------------
+    // SBI AUTOMATION & PENDING TRANSACTIONS (EXPENSE TRACKER UPGRADE)
+    // ------------------------------------------
+    elseif ($route === 'automation/sync-pending' && $method === 'POST') {
+        PendingTransactionController::syncFromWorker();
+    } elseif ($route === 'pending-transactions' && $method === 'GET') {
+        PendingTransactionController::listPending();
+    } elseif ($route === 'pending-transactions/confirm' && $method === 'POST') {
+        PendingTransactionController::confirm();
+    } elseif ($route === 'pending-transactions/dismiss' && $method === 'POST') {
+        PendingTransactionController::dismiss();
+    }
+
+    // ------------------------------------------
+    // REAL BANK BALANCE & STATEMENT AUDIT
+    // ------------------------------------------
+    elseif ($route === 'balance/current' && $method === 'GET') {
+        BalanceController::current();
+    } elseif ($route === 'balance/history' && $method === 'GET') {
+        BalanceController::history();
+    }
+
+    // ------------------------------------------
+    // AUTOMATION CONFIG & AUDIT LOGS
+    // ------------------------------------------
+    elseif ($route === 'automation/config' && $method === 'GET') {
+        AutomationController::getConfig();
+    } elseif ($route === 'automation/config' && $method === 'POST') {
+        AutomationController::updateConfig();
+    } elseif ($route === 'automation/log' && $method === 'POST') {
+        AutomationController::logEvent();
+    } elseif ($route === 'automation/logs' && $method === 'GET') {
+        AutomationController::getLogs();
     }
 
     // ------------------------------------------

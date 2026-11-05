@@ -116,4 +116,56 @@ interface FinPulseApiService {
   // 7. Full Cloud User Dataset Restore (Requirement 5)
   @GET("api/user/sync-all")
   suspend fun pullCloudData(): Response<com.example.data.model.CloudSyncAllResponse>
+
+  // 8. SBI Mini Statement & Pending Transactions (Expense Tracker Upgrade)
+  @GET("api/pending-transactions")
+  suspend fun getPendingTransactions(): Response<com.example.data.model.PendingTransactionsResponse>
+
+  @POST("api/pending-transactions/confirm")
+  suspend fun confirmPendingTransaction(
+    @Body request: com.example.data.model.ConfirmPendingTransactionRequest
+  ): Response<GenericApiResponse>
+
+  @POST("api/pending-transactions/dismiss")
+  suspend fun dismissPendingTransaction(
+    @Body request: com.example.data.model.DismissPendingTransactionRequest
+  ): Response<GenericApiResponse>
+
+  @GET("api/balance/current")
+  suspend fun getRealBalance(): Response<com.example.data.model.RealBalanceResponse>
+
+  @GET("api/balance/history")
+  suspend fun getBalanceHistory(
+    @Query("limit") limit: Int = 20
+  ): Response<com.example.data.model.BalanceHistoryResponse>
+
+  @GET("api/automation/config")
+  suspend fun getAutomationConfig(): Response<com.example.data.model.AutomationConfigResponse>
+
+  @POST("api/automation/config")
+  suspend fun updateAutomationConfig(
+    @Body request: com.example.data.model.UpdateAutomationConfigRequest
+  ): Response<com.example.data.model.AutomationConfigResponse>
+
+  // Dynamic Railway Worker direct endpoints
+  @GET
+  suspend fun getRailwayStatus(
+    @retrofit2.http.Url url: String
+  ): Response<com.example.data.model.RailwayStatusResponse>
+
+  @POST
+  suspend fun requestRailwayPairCode(
+    @retrofit2.http.Url url: String,
+    @Body request: com.example.data.model.RailwayPairRequest
+  ): Response<com.example.data.model.RailwayPairResponse>
+
+  @POST
+  suspend fun disconnectRailway(
+    @retrofit2.http.Url url: String
+  ): Response<GenericApiResponse>
+
+  @POST
+  suspend fun runRailwayAutomationNow(
+    @retrofit2.http.Url url: String
+  ): Response<GenericApiResponse>
 }

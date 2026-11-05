@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinPulse - SBI Mini Statement Automation Worker</title>
+  <style>
+    :root {
+      --bg: #0B192C;
+      --card: #1E3E62;
+      --surface: #132238;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --accent: #E2B714;
+      --green: #10B981;
+      --red: #EF4444;
+      --line: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px 16px; line-height: 1.5; }
+    main { max-width: 720px; margin: 0 auto; display: grid; gap: 18px; }
+    header { text-align: center; margin-bottom: 8px; }
+    h1 { font-size: 1.5rem; color: #fff; margin-bottom: 4px; }
+    p.subtitle { color: var(--muted); font-size: 0.9rem; }
+    section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+    h2 { font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; }
+    .badge.connected { background: rgba(16,185,129,0.2); color: var(--green); }
+    .badge.disconnected { background: rgba(239,68,68,0.2); color: var(--red); }
+    .badge.running { background: rgba(226,183,20,0.2); color: var(--accent); }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin: 10px 0 4px; }
+    input, select { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--line); border-radius: 8px; color: #fff; font-size: 0.95rem; }
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+    button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    button.primary { background: var(--accent); color: #0F172A; }
+    button.secondary { background: var(--card); color: #fff; border: 1px solid var(--line); }
+    button.danger { background: rgba(239,68,68,0.2); color: var(--red); border: 1px solid var(--red); }
+    .code-box { font-family: monospace; font-size: 1.8rem; font-weight: 700; letter-spacing: 0.2em; text-align: center; padding: 12px; background: #000; border-radius: 8px; margin: 12px 0; color: var(--accent); }
+    .qr-container { display: flex; justify-content: center; margin: 14px 0; }
+    .qr-container img { border-radius: 8px; border: 2px solid var(--line); }
+    .log-box { max-height: 220px; overflow-y: auto; background: #000; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.78rem; color: #94A3B8; }
+    .log-line { margin-bottom: 4px; word-break: break-all; }
+    .log-time { color: var(--accent); margin-right: 6px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+    .stat-card { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--line); }
+    .stat-val { font-size: 1.15rem; font-weight: 700; color: #fff; margin-top: 2px; }
+    .disclaimer { font-size: 0.75rem; color: #F59E0B; background: rgba(245,158,11,0.1); padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .hide { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>FinPulse SBI Statement Worker</h1>
+      <p class="subtitle">Autonomous Mini Statement Fetcher & cPanel MySQL Synchronizer</p>
+    </header>
+
+    <!-- 1. WhatsApp Linking -->
+    <section>
+      <h2>
+        <span>1. WhatsApp Connection</span>
+        <span id="wa-badge" class="badge disconnected">Disconnected</span>
+      </h2>
+
+      <div id="unlinked-view">
+        <p style="font-size: 0.85rem; color: var(--muted)">Link your WhatsApp account to enable SBI statement fetching:</p>
+        <div class="qr-container" id="qr-container"></div>
+        <label>Or Link via 8-Digit Pairing Code (Phone with country code):</label>
+        <div style="display: flex; gap: 8px">
+          <input id="phone-input" placeholder="919876543210" value="91">
+          <button class="primary" style="flex: 0 0 130px" onclick="requestPairCode()">Get Code</button>
+        </div>
+        <div id="pair-code-box" class="code-box hide"></div>
+        <div class="disclaimer">
+          ⚠️ <b>Security Notice</b>: Uses the open-source Baileys multi-device protocol. This runs on your personal WhatsApp account and connects directly to SBI's automated WhatsApp banking number (+91 90226 90226).
+        </div>
+      </div>
+
+      <div id="linked-view" class="hide">
+        <p style="font-size: 0.9rem">Connected to: <b id="linked-phone" style="color: var(--green)">+91</b></p>
+        <button class="danger" style="margin-top: 10px" onclick="disconnectWhatsApp()">Disconnect WhatsApp</button>
+      </div>
+    </section>
+
+    <!-- 2. Automation Controls -->
+    <section>
+      <h2>
+        <span>2. SBI Statement Automation</span>
+        <span id="sched-badge" class="badge">Idle</span>
+      </h2>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div style="font-size: 0.75rem; color: var(--muted)">Target Bank</div>
+          <div class="stat-val" id="target-number">SBI (+91 90226 90226)</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size: 0.75rem; color: var(--muted)">Last Balance</div>
+          <div class="stat-val" id="last-balance" style="color: var(--accent)">₹ --</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size: 0.75rem; color: var(--muted)">Next Scheduled Run</div>
+          <div class="stat-val" id="next-run" style="font-size: 0.95rem">--</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size: 0.75rem; color: var(--muted)">Total Cycles Run</div>
+          <div class="stat-val" id="total-runs">0</div>
+        </div>
+      </div>
+
+      <label>Fetch Frequency (Minutes):</label>
+      <select id="interval-select">
+        <option value="15">Every 15 Minutes</option>
+        <option value="30" selected>Every 30 Minutes (Recommended)</option>
+        <option value="60">Every 1 Hour</option>
+        <option value="120">Every 2 Hours</option>
+      </select>
+
+      <div class="btn-row">
+        <button class="primary" onclick="triggerRunNow()">Fetch Statement Now</button>
+        <button class="secondary" id="toggle-btn" onclick="toggleAutomation()">Pause</button>
+      </div>
+    </section>
+
+    <!-- 3. Live Logs -->
+    <section>
+      <h2><span>3. Live Execution Logs</span></h2>
+      <div class="log-box" id="log-box"></div>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/events');
+      } catch(_) {}
+    }
+
+    async function requestPairCode() {
+      const phone = $('phone-input').value.trim();
+      const res = await fetch('/api/whatsapp/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      const data = await res.json();
+      if (data.pairingCode) {
+        $('pair-code-box').textContent = data.pairingCode;
+        $('pair-code-box').classList.remove('hide');
+      }
+    }
+
+    async function disconnectWhatsApp() {
+      if (confirm('Disconnect your WhatsApp session?')) {
+        await fetch('/api/whatsapp/disconnect', { method: 'POST' });
+      }
+    }
+
+    async function triggerRunNow() {
+      await fetch('/api/automation/run-now', { method: 'POST' });
+    }
+
+    async function toggleAutomation() {
+      const isRunning = $('toggle-btn').textContent === 'Pause';
+      const endpoint = isRunning ? '/api/automation/stop' : '/api/automation/start';
+      const intervalMinutes = parseInt($('interval-select').value, 10);
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intervalMinutes })
+      });
+    }
+
+    function render(state) {
+      const wa = state.whatsapp || {};
+      const sched = state.scheduler?.config || {};
+      const isConnected = wa.connected;
+
+      $('wa-badge').textContent = wa.status || 'Disconnected';
+      $('wa-badge').className = 'badge ' + (isConnected ? 'connected' : 'disconnected');
+
+      $('unlinked-view').classList.toggle('hide', isConnected);
+      $('linked-view').classList.toggle('hide', !isConnected);
+
+      if (isConnected) {
+        $('linked-phone').textContent = '+' + (wa.phoneNumber || '');
+      }
+
+      if (wa.qr) {
+        $('qr-container').innerHTML = `<img src="${wa.qr}" width="220" height="220" alt="QR Code">`;
+      } else {
+        $('qr-container').innerHTML = '';
+      }
+
+      if (wa.pairCode) {
+        $('pair-code-box').textContent = wa.pairCode;
+        $('pair-code-box').classList.remove('hide');
+      }
+
+      $('sched-badge').textContent = sched.status || 'IDLE';
+      $('sched-badge').className = 'badge ' + (sched.status === 'RUNNING' ? 'running' : 'connected');
+      $('toggle-btn').textContent = sched.isEnabled ? 'Pause' : 'Start';
+
+      $('target-number').textContent = `+${sched.targetNumber || '919022690226'}`;
+      if (state.scheduler?.lastBalance !== null && state.scheduler?.lastBalance !== undefined) {
+        $('last-balance').textContent = `₹ ${parseFloat(state.scheduler.lastBalance).toFixed(2)}`;
+      }
+      $('total-runs').textContent = sched.runsCount || 0;
+      $('next-run').textContent = sched.nextRunAt ? new Date(sched.nextRunAt).toLocaleTimeString() : '--';
+
+      // Logs
+      const logs = state.logs || [];
+      $('log-box').innerHTML = logs.map(l => 
+        `<div class="log-line"><span class="log-time">${new Date(l.t).toLocaleTimeString()}</span> ${l.m}</div>`
+      ).join('');
+    }
+
+    // Connect SSE
+    const evtSource = new EventSource('/api/events');
+    evtSource.onmessage = (e) => {
+      try {
+        const state = JSON.parse(e.data);
+        render(state);
+      } catch(_) {}
+    };
+  </script>
+</body>
+</html>

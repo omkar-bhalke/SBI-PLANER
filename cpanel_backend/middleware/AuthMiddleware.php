@@ -18,6 +18,29 @@ class AuthMiddleware {
         }
 
         $token = $matches[1];
+
+        // Check if token matches AUTOMATION_API_KEY (from Railway background worker)
+        if (defined('AUTOMATION_API_KEY') && $token === AUTOMATION_API_KEY) {
+            $db = Database::getConnection();
+            $targetUserId = $headers['X-User-Id'] ?? $headers['x-user-id'] ?? ($_GET['userId'] ?? '');
+            if (!empty($targetUserId)) {
+                $stmt = $db->prepare("SELECT id, email, name, profile_image FROM users WHERE id = ? LIMIT 1");
+                $stmt->execute([$targetUserId]);
+                $user = $stmt->fetch();
+            } else {
+                $stmt = $db->query("SELECT id, email, name, profile_image FROM users ORDER BY created_at ASC LIMIT 1");
+                $user = $stmt->fetch();
+            }
+            if (!$user) {
+                Response::unauthorized('No target user found for automation worker', 'USER_NOT_FOUND');
+            }
+            return [
+                'user'     => $user,
+                'deviceId' => 'railway_automation_worker',
+                'isServiceWorker' => true
+            ];
+        }
+
         $payload = Jwt::verifyToken($token);
         if (!$payload || !isset($payload['userId'])) {
             Response::unauthorized('Invalid or expired authentication session. Please login again.', 'TOKEN_EXPIRED');

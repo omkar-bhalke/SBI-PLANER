@@ -335,10 +335,134 @@ data class CloudAccountDto(
   val bankName: String = "State Bank of India (SBI)"
 )
 
+// ==========================================
+// SBI AUTOMATION & PENDING TRANSACTIONS (EXPENSE TRACKER UPGRADE)
+// ==========================================
+
 @JsonClass(generateAdapter = true)
-data class CloudWhatsAppDto(
+data class PendingTransactionDto(
+  val id: String,
+  val source: String = "SBI_WHATSAPP_STATEMENT",
+  val accountNumber: String = "xxx188",
+  val transactionDate: String,
+  val amount: Double,
+  val type: String, // DEBIT or CREDIT
+  val description: String,
+  val suggestedCategory: String = "Bank Transfer",
+  val idempotencyHash: String,
+  val status: String = "PENDING",
+  val createdAt: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class PendingTransactionsResponse(
+  val success: Boolean,
+  val count: Int = 0,
+  val items: List<PendingTransactionDto> = emptyList(),
+  val message: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ConfirmPendingTransactionRequest(
+  val pendingTransactionId: String,
+  val categoryName: String,
+  val notes: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class DismissPendingTransactionRequest(
+  val pendingTransactionId: String
+)
+
+@JsonClass(generateAdapter = true)
+data class RealBalanceResponse(
+  val success: Boolean,
+  val currentBalance: Double = 0.0,
+  val openingBalance: Double = 0.0,
+  val accountNumber: String? = "xxx188",
+  val bankName: String? = "State Bank of India (SBI)",
+  val lastStatementDate: String? = null,
+  val lastStatementSync: String? = null,
+  val rawStatementText: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class BalanceHistoryItem(
+  val id: String,
+  val accountNumber: String = "xxx188",
+  val balance: Double,
+  val rawStatementDate: String? = null,
+  val source: String = "SBI_WHATSAPP",
+  val createdAt: String
+)
+
+@JsonClass(generateAdapter = true)
+data class BalanceHistoryResponse(
+  val success: Boolean,
+  val count: Int = 0,
+  val history: List<BalanceHistoryItem> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class AutomationConfigDto(
+  val sbiTargetPhone: String = "919022690226",
+  val intervalMinutes: Int = 30,
+  val isEnabled: Boolean = true,
+  val railwayApiUrl: String? = null,
+  val lastRunAt: String? = null,
+  val lastStatus: String? = "IDLE"
+)
+
+@JsonClass(generateAdapter = true)
+data class AutomationConfigResponse(
+  val success: Boolean,
+  val sbiTargetPhone: String = "919022690226",
+  val intervalMinutes: Int = 30,
+  val isEnabled: Boolean = true,
+  val railwayApiUrl: String? = null,
+  val lastRunAt: String? = null,
+  val lastStatus: String? = "IDLE",
+  val message: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class UpdateAutomationConfigRequest(
+  val sbiTargetPhone: String = "919022690226",
+  val intervalMinutes: Int = 30,
+  val isEnabled: Boolean = true,
+  val railwayApiUrl: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class RailwayPairRequest(
+  val phoneNumber: String
+)
+
+@JsonClass(generateAdapter = true)
+data class RailwayPairResponse(
+  val success: Boolean,
+  val pairingCode: String? = null,
+  val error: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class RailwayAutomationStatusDto(
+  val enabled: Boolean = true,
+  val intervalMinutes: Int = 30,
+  val lastRunTime: String? = null,
+  val lastStatus: String? = "IDLE",
+  val lastBalance: Double? = null,
+  val lastAccountNumber: String? = null,
+  val totalRuns: Int = 0,
+  val targetSbiNumber: String? = "919022690226"
+)
+
+@JsonClass(generateAdapter = true)
+data class RailwayStatusResponse(
   val connected: Boolean = false,
-  val phoneNumber: String? = null,
-  val status: String? = "NOT_CONNECTED"
+  val status: String = "DISCONNECTED",
+  val qrDataUrl: String? = null,
+  val uptimeSeconds: Long? = 0L,
+  val automation: RailwayAutomationStatusDto? = null
 )
 

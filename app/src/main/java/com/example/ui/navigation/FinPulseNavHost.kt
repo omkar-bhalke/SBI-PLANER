@@ -70,6 +70,7 @@ fun FinPulseNavHost(
   val analyticsViewModel: AnalyticsViewModel = viewModel()
   val aiAssistantViewModel: AiAssistantViewModel = viewModel()
   val settingsViewModel: SettingsViewModel = viewModel()
+  val statementViewModel: com.example.viewmodel.StatementAutomationViewModel = viewModel()
 
   var transactionToEdit by remember { mutableStateOf<TransactionEntity?>(null) }
 

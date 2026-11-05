@@ -54,14 +54,18 @@ import com.example.viewmodel.DashboardViewModel
 @Composable
 fun DashboardScreen(
   viewModel: DashboardViewModel,
+  statementViewModel: com.example.viewmodel.StatementAutomationViewModel? = null,
   onAddTransactionClick: () -> Unit,
   onViewAllTransactionsClick: () -> Unit,
+  onPendingTransactionsClick: () -> Unit = {},
   onTransactionClick: (TransactionEntity) -> Unit,
   onAiAssistantClick: () -> Unit,
   onConfigureLimitsClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val uiState by viewModel.uiState.collectAsState()
+  val pendingList by statementViewModel?.pendingTransactions?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+  val realBalance by statementViewModel?.realBalance?.collectAsState() ?: remember { mutableStateOf(null) }
 
   Scaffold(
     containerColor = MaterialTheme.colorScheme.background,
@@ -114,6 +118,67 @@ fun DashboardScreen(
               contentDescription = "Sync",
               tint = MaterialTheme.colorScheme.primary
             )
+          }
+        }
+      }
+
+      // Pending SBI Statement Alert Banner (Expense Tracker Upgrade)
+      if (pendingList.isNotEmpty()) {
+        item {
+          Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E3A8A)),
+            modifier = Modifier
+              .fillMaxWidth()
+              .testTag("sbi_pending_transactions_banner")
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Box(
+                  modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(AccentGold),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Text(
+                    text = "${pendingList.size}",
+                    color = Color(0xFF0F172A),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                  )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                  Text(
+                    text = "New SBI Statement Entries",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                  )
+                  Text(
+                    text = "Tap to review & assign categories",
+                    color = Color(0xFF93C5FD),
+                    fontSize = 11.sp
+                  )
+                }
+              }
+
+              Button(
+                onClick = onPendingTransactionsClick,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentGold),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+              ) {
+                Text("Review", color = Color(0xFF0F172A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+              }
+            }
           }
         }
       }

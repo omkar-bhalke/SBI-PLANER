@@ -26,6 +26,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
   object WhatsAppLinking : Screen("whatsapp_linking", "WhatsApp Linking")
   object AppRestrictions : Screen("app_restrictions", "App Restrictions")
   object EmergencyApproval : Screen("emergency_approval", "Emergency Request")
+  object PendingTransactions : Screen("pending_transactions", "SBI Statement Entries")
+  object AutomationSettings : Screen("automation_settings", "Statement Automation")
 
   companion object {
     val bottomNavItems = listOf(

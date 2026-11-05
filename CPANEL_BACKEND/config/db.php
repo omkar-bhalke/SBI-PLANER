@@ -19,6 +19,7 @@ define('DB_CHARSET', 'utf8mb4');
 // Cryptographic secret key for signing JWT tokens and AES-256-CBC at rest encryption
 define('JWT_SECRET_KEY', 'finpulse_cpanel_jwt_secret_radhewins_buzz_9823471029384756');
 define('AES_ENCRYPTION_KEY', 'finpulse_aes256_enc_key_radhewins_buzz_2026');
+define('AUTOMATION_API_KEY', 'radhewins_sbi_railway_secret_token_2026');
 
 class Database {
     private static ?PDO $instance = null;
